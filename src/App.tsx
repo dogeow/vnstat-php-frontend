@@ -623,6 +623,9 @@ export default function App({ bootstrap }: AppProps) {
                 </h1>
               </div>
             </div>
+            {deferredPayload ? (
+              <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
+            ) : null}
             <Tabs value={route.page} className="w-full">
               <ScrollArea className="w-full whitespace-nowrap">
                 <TabsList className="h-auto w-max gap-2 bg-transparent p-0">
@@ -694,7 +697,6 @@ export default function App({ bootstrap }: AppProps) {
 
           {deferredPayload ? (
             <>
-              <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
               <ChartSection
                 payload={deferredPayload}
                 bootstrap={bootstrap}
