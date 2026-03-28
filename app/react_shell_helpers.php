@@ -78,6 +78,12 @@
             'small' => 'Small',
             'none' => 'Hide',
         ];
+        $pageOrder = [
+            'h' => 0,
+            'd' => 1,
+            'm' => 2,
+            's' => 3,
+        ];
         $activeViewTitle = app_active_view_title($request['page'], $pageTitle);
         $documentTitle = app_document_title($request['iface'], $request['page'], $pageTitle, $appConfig);
 
@@ -148,6 +154,13 @@
                 'label' => isset($pageTitle[$pageId]) ? ucfirst($pageTitle[$pageId]) : $pageId,
             ];
         }
+
+        usort($payload['options']['pages'], function ($left, $right) use ($pageOrder) {
+            $leftRank = isset($pageOrder[$left['id']]) ? $pageOrder[$left['id']] : 99;
+            $rightRank = isset($pageOrder[$right['id']]) ? $pageOrder[$right['id']] : 99;
+
+            return $leftRank <=> $rightRank;
+        });
 
         foreach (isset($appConfig['graphList']) ? $appConfig['graphList'] : [] as $graphId) {
             $payload['options']['graphs'][] = [

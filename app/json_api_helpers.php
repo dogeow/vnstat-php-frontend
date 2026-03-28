@@ -158,6 +158,12 @@
 
     function json_api_build_chart_payload($page, $graph, array $detail)
     {
+        $points = $detail['rows'];
+
+        if ($page !== 's') {
+            $points = array_values(array_reverse($points));
+        }
+
         return [
             'enabled' => $graph !== 'none',
             'title' => $page === 's' ? __('Top 10 days') : __('Traffic chart'),
@@ -165,7 +171,7 @@
                 ? __('Peak traffic days rendered as an interactive chart for quick comparison.')
                 : __('Interactive traffic bars rendered directly in React from vnStat JSON data.'),
             'size' => $graph,
-            'points' => $detail['rows'],
+            'points' => $points,
         ];
     }
 
