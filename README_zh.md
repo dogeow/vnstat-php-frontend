@@ -4,15 +4,11 @@
 
 ## 项目结构
 
-这个项目保留了 vnStat 的 PHP 取数逻辑，只把界面改成了 React。
-
 - 页面入口：`index.php`
 - 数据接口：`api/traffic.php`
 - 前端源码：`src/`
 - PHP 内部模块：`app/`
 - 主题目录：`themes/light`、`themes/dark`
-
-当前界面已适配手机端，应用内图表尺寸固定为 `small`。
 
 ## 运行要求
 

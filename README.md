@@ -4,15 +4,11 @@ A modern vnStat dashboard with a React frontend and a small PHP backend.
 
 ## Overview
 
-This project keeps vnStat data collection on the PHP side and renders the UI in React.
-
 - Page entry: `index.php`
 - Data API: `api/traffic.php`
 - Frontend source: `src/`
 - Internal PHP helpers: `app/`
 - Themes: `themes/light`, `themes/dark`
-
-The current UI is mobile-friendly and uses a single chart size mode in the app flow.
 
 ## Requirements
 
