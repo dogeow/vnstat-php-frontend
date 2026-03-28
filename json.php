@@ -184,11 +184,13 @@
         global $page, $graph;
 
         return array(
-            'enabled' => $page != 's' && $graph != 'none',
-            'title' => T('Traffic chart'),
-            'description' => T('Interactive traffic bars rendered directly in React from vnStat JSON data.'),
+            'enabled' => $graph != 'none',
+            'title' => $page == 's' ? T('Top 10 days') : T('Traffic chart'),
+            'description' => $page == 's'
+                ? T('Peak traffic days rendered as an interactive chart for quick comparison.')
+                : T('Interactive traffic bars rendered directly in React from vnStat JSON data.'),
             'size' => $graph,
-            'points' => $page == 's' ? array() : $detail['rows']
+            'points' => $detail['rows']
         );
     }
 

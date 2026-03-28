@@ -151,6 +151,7 @@
                 'noTrafficDataMessage' => T('vnStat returned no current counters for this interface.'),
                 'noChartDataTitle' => T('No chart data available'),
                 'noChartDataMessage' => T('vnStat has not returned enough samples to draw this time range yet.'),
+                'topDaysChartDescription' => T('Peak traffic days rendered as an interactive chart for quick comparison.'),
                 'in' => T('In'),
                 'out' => T('Out'),
                 'total' => T('Total')

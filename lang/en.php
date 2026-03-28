@@ -53,6 +53,7 @@ $L['vnStat returned no current counters for this interface.'] = 'vnStat returned
 $L['No chart data available'] = 'No chart data available';
 $L['vnStat has not returned enough samples to draw this time range yet.'] = 'vnStat has not returned enough samples to draw this time range yet.';
 $L['No data available'] = 'No data available';
+$L['Peak traffic days rendered as an interactive chart for quick comparison.'] = 'Peak traffic days rendered as an interactive chart for quick comparison.';
 $L['Daily peak history is not available yet for this interface.'] = 'Daily peak history is not available yet for this interface.';
 $L['Hourly statistics are not available yet for this interface.'] = 'Hourly statistics are not available yet for this interface.';
 $L['Daily statistics are not available yet for this interface.'] = 'Daily statistics are not available yet for this interface.';

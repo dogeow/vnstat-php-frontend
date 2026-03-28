@@ -359,9 +359,7 @@ export default function App({ bootstrap }: AppProps) {
       ? bootstrap.labels.chartHidden
       : route.graph === "small"
         ? bootstrap.labels.compactChart
-        : route.page === "s"
-          ? bootstrap.labels.summaryView
-          : bootstrap.labels.fullChart;
+        : bootstrap.labels.fullChart;
   const themeLabel = optionLabel(bootstrap.options.styles, route.style);
 
   return (
@@ -458,35 +456,33 @@ export default function App({ bootstrap }: AppProps) {
             </div>
           </div>
 
-          {route.page !== "s" ? (
-            <div className="graph-switcher">
-              <p className="switcher-label">{bootstrap.labels.chartSize}</p>
-              <div className="segmented-control">
-                {bootstrap.options.graphs.map((option) => {
-                  const href = navHref({
-                    ...route,
-                    graph: option.id as GraphKey
-                  });
-                  const active = route.graph === option.id;
+          <div className="graph-switcher">
+            <p className="switcher-label">{bootstrap.labels.chartSize}</p>
+            <div className="segmented-control">
+              {bootstrap.options.graphs.map((option) => {
+                const href = navHref({
+                  ...route,
+                  graph: option.id as GraphKey
+                });
+                const active = route.graph === option.id;
 
-                  return (
-                    <a
-                      key={option.id}
-                      className={`segment${active ? " active" : ""}`}
-                      href={href}
-                      aria-current={active ? "page" : undefined}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        navigate({ graph: option.id as GraphKey });
-                      }}
-                    >
-                      {option.label}
-                    </a>
-                  );
-                })}
-              </div>
+                return (
+                  <a
+                    key={option.id}
+                    className={`segment${active ? " active" : ""}`}
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigate({ graph: option.id as GraphKey });
+                    }}
+                  >
+                    {option.label}
+                  </a>
+                );
+              })}
             </div>
-          ) : null}
+          </div>
         </header>
 
         {loading && !payload ? (

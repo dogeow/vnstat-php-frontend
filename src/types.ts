@@ -52,6 +52,7 @@ export interface Bootstrap {
     noTrafficDataMessage: string;
     noChartDataTitle: string;
     noChartDataMessage: string;
+    topDaysChartDescription: string;
     summaryTitle: string;
     in: string;
     out: string;
