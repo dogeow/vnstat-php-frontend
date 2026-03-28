@@ -160,9 +160,12 @@
     {
         $points = $detail['rows'];
 
-        if ($page !== 's') {
-            $points = array_values(array_reverse($points));
-        }
+        usort($points, function ($left, $right) {
+            $leftTime = isset($left['time']) ? (int) $left['time'] : 0;
+            $rightTime = isset($right['time']) ? (int) $right['time'] : 0;
+
+            return $leftTime <=> $rightTime;
+        });
 
         return [
             'enabled' => $graph !== 'none',
