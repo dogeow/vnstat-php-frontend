@@ -121,33 +121,36 @@ function SummarySection({
           </div>
         ) : (
           <>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {cards.map((card) => {
-                const active = activeCardId === card.id;
+            <ScrollArea className="w-full whitespace-nowrap">
+              <div className="flex min-w-max gap-3">
+                {cards.map((card) => {
+                  const active = activeCardId === card.id;
 
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    aria-pressed={active}
-                    className={cn(
-                      "flex min-h-[108px] w-full flex-col items-start gap-2 rounded-[1.35rem] border border-border bg-card/90 px-4 py-4 text-left transition-colors",
-                      active && "border-[var(--accent-strong)] bg-card"
-                    )}
-                    onClick={() => {
-                      setActiveCardId((current) => (current === card.id ? null : card.id));
-                    }}
-                  >
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      {card.label}
-                    </span>
-                    <span className="text-xl font-semibold tracking-tight text-card-foreground">
-                      {card.formatted.total}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                  return (
+                    <button
+                      key={card.id}
+                      type="button"
+                      aria-pressed={active}
+                      className={cn(
+                        "flex min-h-[92px] min-w-[160px] flex-1 flex-col items-start gap-1.5 rounded-[1.35rem] border border-border bg-card/90 px-4 py-3 text-left transition-colors md:min-w-[180px]",
+                        active && "border-[var(--accent-strong)] bg-card"
+                      )}
+                      onClick={() => {
+                        setActiveCardId((current) => (current === card.id ? null : card.id));
+                      }}
+                    >
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        {card.label}
+                      </span>
+                      <span className="text-lg font-semibold tracking-tight text-card-foreground md:text-xl">
+                        {card.formatted.total}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
 
             {activeCard ? (
               <Card className="rounded-[24px] border-border/80 bg-card/95 shadow-none">
