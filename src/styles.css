@@ -54,15 +54,15 @@
 
 .chart-shell {
   width: 100%;
-  min-height: 240px;
+  height: 240px;
 }
 
 .chart-shell.chart-shell-small {
-  min-height: 210px;
+  height: 210px;
 }
 
 .chart-shell.chart-shell-large {
-  min-height: 320px;
+  height: 320px;
 }
 
 .chart-empty,
@@ -176,10 +176,10 @@
   }
 
   .chart-shell.chart-shell-large {
-    min-height: 248px;
+    height: 248px;
   }
 
   .chart-shell.chart-shell-small {
-    min-height: 210px;
+    height: 210px;
   }
 }
