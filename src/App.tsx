@@ -197,59 +197,57 @@ function ChartSection({
           </p>
         </div>
       ) : (
-        <div className="rounded-[28px] border border-border bg-[color:var(--surface-elevated)]/90 p-3 md:p-4">
-          <div className={cn("w-full", chartClass)}>
-            <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={payload.chart.points} barGap={6}>
-              <CartesianGrid stroke="var(--border-soft)" vertical={false} />
-              <XAxis
-                dataKey="shortLabel"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: "var(--muted)", fontSize: 12 }}
-                minTickGap={12}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: "var(--muted)", fontSize: 12 }}
-                tickFormatter={(value: number) =>
-                  formatCompactKbytes(
-                    value,
-                    bootstrap.language,
-                    bootstrap.byteNotation
-                  )
-                }
-                width={78}
-              />
-              <Tooltip
-                content={
-                  <TrafficTooltip
-                    labels={{
-                      in: bootstrap.labels.in,
-                      out: bootstrap.labels.out,
-                      total: bootstrap.labels.total
-                    }}
-                  />
-                }
-                cursor={{ fill: "var(--accent-soft)" }}
-              />
-              <Legend />
-              <Bar
-                dataKey="rx"
-                name={bootstrap.labels.in}
-                fill="var(--rx)"
-                radius={[6, 6, 0, 0]}
-              />
-              <Bar
-                dataKey="tx"
-                name={bootstrap.labels.out}
-                fill="var(--tx)"
-                radius={[6, 6, 0, 0]}
-              />
-            </BarChart>
+        <div className={cn("w-full", chartClass)}>
+          <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={payload.chart.points} barGap={6}>
+            <CartesianGrid stroke="var(--border-soft)" vertical={false} />
+            <XAxis
+              dataKey="shortLabel"
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: "var(--muted)", fontSize: 12 }}
+              minTickGap={12}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: "var(--muted)", fontSize: 12 }}
+              tickFormatter={(value: number) =>
+                formatCompactKbytes(
+                  value,
+                  bootstrap.language,
+                  bootstrap.byteNotation
+                )
+              }
+              width={78}
+            />
+            <Tooltip
+              content={
+                <TrafficTooltip
+                  labels={{
+                    in: bootstrap.labels.in,
+                    out: bootstrap.labels.out,
+                    total: bootstrap.labels.total
+                  }}
+                />
+              }
+              cursor={{ fill: "var(--accent-soft)" }}
+            />
+            <Legend />
+            <Bar
+              dataKey="rx"
+              name={bootstrap.labels.in}
+              fill="var(--rx)"
+              radius={[6, 6, 0, 0]}
+            />
+            <Bar
+              dataKey="tx"
+              name={bootstrap.labels.out}
+              fill="var(--tx)"
+              radius={[6, 6, 0, 0]}
+            />
+          </BarChart>
           </ResponsiveContainer>
-          </div>
         </div>
       )}
     </section>
@@ -561,39 +559,40 @@ export default function App({ bootstrap }: AppProps) {
             {deferredPayload ? (
               <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
             ) : null}
-            <Tabs value={route.page} className="w-full">
-              <TabsList className="grid h-auto w-full grid-cols-4 gap-2 bg-transparent p-0">
-                {bootstrap.options.pages.map((option) => {
-                  const href = navHref({
-                    ...route,
-                    page: option.id as AppRoute["page"]
-                  });
-
-                  return (
-                    <TabsTrigger
-                      key={option.id}
-                      value={option.id}
-                      className="w-full min-w-0 rounded-full border border-border bg-card/90 px-2 py-2.5 text-xs data-[state=active]:border-[var(--accent-strong)] data-[state=active]:bg-card sm:px-4 sm:py-3 sm:text-sm"
-                      asChild
-                    >
-                      <a
-                        href={href}
-                        aria-current={route.page === option.id ? "page" : undefined}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          navigate({ page: option.id as AppRoute["page"] });
-                        }}
-                      >
-                        {option.label}
-                      </a>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </Tabs>
           </section>
 
           <hr className="border-border/70" />
+
+          <Tabs value={route.page} className="w-full">
+            <TabsList className="grid h-auto w-full grid-cols-4 gap-2 bg-transparent p-0">
+              {bootstrap.options.pages.map((option) => {
+                const href = navHref({
+                  ...route,
+                  page: option.id as AppRoute["page"]
+                });
+
+                return (
+                  <TabsTrigger
+                    key={option.id}
+                    value={option.id}
+                    className="w-full min-w-0 rounded-full border border-border bg-card/90 px-2 py-2.5 text-xs data-[state=active]:border-[var(--accent-strong)] data-[state=active]:bg-card sm:px-4 sm:py-3 sm:text-sm"
+                    asChild
+                  >
+                    <a
+                      href={href}
+                      aria-current={route.page === option.id ? "page" : undefined}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigate({ page: option.id as AppRoute["page"] });
+                      }}
+                    >
+                      {option.label}
+                    </a>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </Tabs>
 
           <main className="space-y-4">
           {loading && !payload ? (
