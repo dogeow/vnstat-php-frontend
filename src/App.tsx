@@ -199,7 +199,7 @@ function ChartSection({
       ) : (
         <div className={cn("w-full", chartClass)}>
           <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={payload.chart.points} barGap={6}>
+          <BarChart data={payload.chart.points} barGap={6} margin={{ left: -10, right: 4 }}>
             <CartesianGrid stroke="var(--border-soft)" vertical={false} />
             <XAxis
               dataKey="shortLabel"
@@ -219,7 +219,7 @@ function ChartSection({
                   bootstrap.byteNotation
                 )
               }
-              width={60}
+              width={54}
             />
             <Tooltip
               content={
@@ -528,7 +528,19 @@ export default function App({ bootstrap }: AppProps) {
               </div>
             </details>
           ) : (
-            <div className="w-10 shrink-0" aria-hidden="true" />
+            <div
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "h-auto min-w-[180px] justify-start rounded-2xl px-4 py-3 text-left shadow-none"
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <span>{currentInterface?.label ?? route.iface}</span>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {currentInterface?.meta ?? route.iface}
+                </span>
+              </span>
+            </div>
           )}
 
           <a
