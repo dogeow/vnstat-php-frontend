@@ -79,9 +79,6 @@
         $totalRx = (isset($summary['totalrx']) ? $summary['totalrx'] : 0) * 1024 + (isset($summary['totalrxk']) ? $summary['totalrxk'] : 0);
         $totalTx = (isset($summary['totaltx']) ? $summary['totaltx'] : 0) * 1024 + (isset($summary['totaltxk']) ? $summary['totaltxk'] : 0);
 
-        if ($totalRx > 0 || $totalTx > 0) {
-            $cards[] = json_api_summary_card_record('total', __('All time'), $totalRx, $totalTx, $byteNotation);
-        }
         if (isset($hour[0])) {
             $cards[] = json_api_summary_card_record('hour', __('This hour'), $hour[0]['rx'], $hour[0]['tx'], $byteNotation);
         }
@@ -90,6 +87,9 @@
         }
         if (isset($month[0])) {
             $cards[] = json_api_summary_card_record('month', __('This month'), $month[0]['rx'], $month[0]['tx'], $byteNotation);
+        }
+        if ($totalRx > 0 || $totalTx > 0) {
+            $cards[] = json_api_summary_card_record('total', __('All time'), $totalRx, $totalTx, $byteNotation);
         }
 
         return $cards;
