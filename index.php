@@ -1,36 +1,13 @@
 <?php
-    //
-    // vnStat PHP frontend (c)2006-2010 Bjorge Dijkstra (bjd@jooz.net)
-    //
-    // This program is free software; you can redistribute it and/or modify
-    // it under the terms of the GNU General Public License as published by
-    // the Free Software Foundation; either version 2 of the License, or
-    // (at your option) any later version.
-    //
-    // This program is distributed in the hope that it will be useful,
-    // but WITHOUT ANY WARRANTY; without even the implied warranty of
-    // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    // GNU General Public License for more details.
-    //
-    // You should have received a copy of the GNU General Public License
-    // along with this program; if not, write to the Free Software
-    // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-    //
-    //
-    // see file COPYING or at http://www.gnu.org/licenses/gpl.html
-    // for more information.
-    //
     require 'config.php';
     require 'localize.php';
     require 'vnstat.php';
 
     validate_input();
 
-    require "./themes/$style/theme.php";
-
     function h($value)
     {
-        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
     }
 
     function iface_label($if)
@@ -44,413 +21,214 @@
         return $if;
     }
 
-    function build_url($overrides = array())
-    {
-        global $iface, $page, $graph, $style, $script;
-
-        $params = array(
-            'if' => $iface,
-            'page' => $page,
-            'graph' => $graph,
-            'style' => $style
-        );
-
-        foreach ($overrides as $key => $value) {
-            $params[$key] = $value;
-        }
-
-        return $script.'?'.http_build_query($params, '', '&');
-    }
-
     function active_view_title()
     {
-        global $page;
+        global $page, $page_title;
 
-        if ($page == 'h') {
-            return T('Last 24 hours');
-        }
-        if ($page == 'd') {
-            return T('Last 30 days');
-        }
-        if ($page == 'm') {
-            return T('Last 12 months');
-        }
-
-        return T('Summary');
+        return isset($page_title[$page]) ? ucfirst($page_title[$page]) : T('Summary');
     }
 
-    function active_view_description()
+    function available_styles()
     {
-        global $page;
+        $styles = array();
+        $entries = @scandir(__DIR__.'/themes');
 
-        if ($page == 'h') {
-            return 'Track the last 24 hourly samples for the selected interface.';
-        }
-        if ($page == 'd') {
-            return 'Review the last 30 daily totals and spot short-term spikes.';
-        }
-        if ($page == 'm') {
-            return 'Compare monthly totals across the last 12 billing cycles.';
+        if ($entries === false) {
+            return array(array('id' => DEFAULT_COLORSCHEME, 'label' => ucfirst(DEFAULT_COLORSCHEME)));
         }
 
-        return 'A responsive overview of current bandwidth usage and historical peaks.';
-    }
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..' || $entry === 'common.css') {
+                continue;
+            }
 
-    function graph_mode_label()
-    {
-        global $graph, $page;
-
-        if ($page == 's') {
-            return 'Summary view';
-        }
-
-        if ($graph == 'small') {
-            return 'Compact chart';
-        }
-        if ($graph == 'none') {
-            return 'Chart hidden';
-        }
-
-        return 'Full chart';
-    }
-
-    function graph_source_url()
-    {
-        global $iface, $page, $style, $graph, $graph_format;
-
-        $endpoint = ($graph_format == 'svg') ? 'graph_svg.php' : 'graph.php';
-
-        return $endpoint.'?'.http_build_query(array(
-            'if' => $iface,
-            'page' => $page,
-            'graph' => $graph,
-            'style' => $style
-        ), '', '&');
-    }
-
-    function kbytes_to_string($kb)
-    {
-        global $byte_notation;
-
-        $units = array('TB', 'GB', 'MB', 'KB');
-        $scale = 1024 * 1024 * 1024;
-        $ui = 0;
-
-        $custom_size = isset($byte_notation) && in_array($byte_notation, $units);
-
-        while ((($kb < $scale) && ($scale > 1)) || $custom_size) {
-            $ui++;
-            $scale = $scale / 1024;
-
-            if ($custom_size && $units[$ui] == $byte_notation) {
-                break;
+            $theme_dir = __DIR__.'/themes/'.$entry;
+            if (is_dir($theme_dir) && file_exists($theme_dir.'/style.css') && file_exists($theme_dir.'/theme.php')) {
+                $styles[] = array(
+                    'id' => $entry,
+                    'label' => ucfirst($entry)
+                );
             }
         }
 
-        return sprintf('%0.2f %s', ($kb / $scale), $units[$ui]);
+        if (count($styles) === 0) {
+            $styles[] = array('id' => DEFAULT_COLORSCHEME, 'label' => ucfirst(DEFAULT_COLORSCHEME));
+        }
+
+        usort($styles, function ($left, $right) {
+            return strcmp($left['label'], $right['label']);
+        });
+
+        return $styles;
     }
 
-    function build_summary_cards()
+    function read_asset_manifest()
     {
-        global $summary, $day, $hour, $month;
-
-        $cards = array();
-        $total_rx = (isset($summary['totalrx']) ? $summary['totalrx'] : 0) * 1024 + (isset($summary['totalrxk']) ? $summary['totalrxk'] : 0);
-        $total_tx = (isset($summary['totaltx']) ? $summary['totaltx'] : 0) * 1024 + (isset($summary['totaltxk']) ? $summary['totaltxk'] : 0);
-
-        if (count($hour) > 0) {
-            $cards[] = array(
-                'label' => T('This hour'),
-                'rx' => $hour[0]['rx'],
-                'tx' => $hour[0]['tx']
-            );
-        }
-        if (count($day) > 0) {
-            $cards[] = array(
-                'label' => T('This day'),
-                'rx' => $day[0]['rx'],
-                'tx' => $day[0]['tx']
-            );
-        }
-        if (count($month) > 0) {
-            $cards[] = array(
-                'label' => T('This month'),
-                'rx' => $month[0]['rx'],
-                'tx' => $month[0]['tx']
-            );
-        }
-        if ($total_rx > 0 || $total_tx > 0 || count($cards) > 0) {
-            $cards[] = array(
-                'label' => T('All time'),
-                'rx' => $total_rx,
-                'tx' => $total_tx
-            );
+        $manifest_path = __DIR__.'/dist/manifest.json';
+        if (!file_exists($manifest_path)) {
+            return null;
         }
 
-        return $cards;
+        $manifest = json_decode(file_get_contents($manifest_path), true);
+        if (!is_array($manifest) || !isset($manifest['src/main.tsx'])) {
+            return null;
+        }
+
+        return $manifest['src/main.tsx'];
     }
 
-    function write_empty_state($title, $message)
+    function render_react_assets($manifest_entry)
     {
-        print "<div class=\"empty-state\">\n";
-        print '<h3>'.h($title)."</h3>\n";
-        print '<p>'.h($message)."</p>\n";
-        print "</div>\n";
+        if (!is_array($manifest_entry)) {
+            return;
+        }
+
+        if (isset($manifest_entry['css']) && is_array($manifest_entry['css'])) {
+            foreach ($manifest_entry['css'] as $css_file) {
+                print '  <link rel="stylesheet" href="'.h('dist/'.$css_file)."\"/>\n";
+            }
+        }
+
+        if (isset($manifest_entry['file'])) {
+            print '  <script type="module" src="'.h('dist/'.$manifest_entry['file'])."\"></script>\n";
+        }
     }
 
-    function write_sidebar()
+    function bootstrap_payload()
     {
-        global $iface, $iface_list, $page, $page_list, $page_title;
+        global $iface, $page, $graph, $style, $iface_list, $page_list, $page_title;
+        global $language, $byte_notation;
 
-        print "<aside class=\"sidebar\">\n";
-        print "  <section class=\"nav-card\">\n";
-        print "    <p class=\"nav-card-title\">Interfaces</p>\n";
-        print "    <ul class=\"iface-list\">\n";
-        foreach ($iface_list as $if) {
-            $active = ($iface == $if) ? ' active' : '';
-            $current = ($iface == $if) ? ' aria-current="page"' : '';
-            print "      <li>\n";
-            print '        <a class="iface-link'.$active.'"'.$current.' href="'.h(build_url(array('if' => $if)))."\">\n";
-            print '          <span class="iface-link-title">'.h(iface_label($if))."</span>\n";
-            print '          <span class="iface-link-meta">'.h($if)."</span>\n";
-            print "        </a>\n";
-            print "      </li>\n";
-        }
-        print "    </ul>\n";
-        print "  </section>\n";
-
-        print "  <section class=\"nav-card\">\n";
-        print "    <p class=\"nav-card-title\">Views</p>\n";
-        print "    <ul class=\"view-list\">\n";
-        foreach ($page_list as $pg) {
-            $active = ($page == $pg) ? ' active' : '';
-            $current = ($page == $pg) ? ' aria-current="page"' : '';
-            print "      <li>\n";
-            print '        <a class="view-link'.$active.'"'.$current.' href="'.h(build_url(array('page' => $pg))).'">'.h(ucfirst($page_title[$pg]))."</a>\n";
-            print "      </li>\n";
-        }
-        print "    </ul>\n";
-        print "  </section>\n";
-        print "</aside>\n";
-    }
-
-    function write_graph_switcher()
-    {
-        global $graph, $graph_list;
-
-        $labels = array(
+        $graph_labels = array(
             'large' => 'Large',
             'small' => 'Small',
             'none' => 'Hide'
         );
 
-        print "<div class=\"graph-switcher\">\n";
-        print "  <p class=\"switcher-label\">Chart size</p>\n";
-        print "  <div class=\"segmented-control\">\n";
-        foreach ($graph_list as $graph_option) {
-            $active = ($graph == $graph_option) ? ' active' : '';
-            $current = ($graph == $graph_option) ? ' aria-current="page"' : '';
-            print '    <a class="segment'.$active.'"'.$current.' href="'.h(build_url(array('graph' => $graph_option))).'">'.h($labels[$graph_option])."</a>\n";
+        $payload = array(
+            'request' => array(
+                'iface' => $iface,
+                'page' => $page,
+                'graph' => $graph,
+                'style' => $style
+            ),
+            'language' => $language,
+            'byteNotation' => $byte_notation,
+            'documentTitle' => active_view_title().' - '.T('Traffic data for').' '.iface_label($iface).' ('.$iface.')',
+            'options' => array(
+                'ifaces' => array(),
+                'pages' => array(),
+                'graphs' => array(),
+                'styles' => available_styles()
+            ),
+            'endpoints' => array(
+                'data' => 'json.php',
+                'legacyGraph' => 'graph_svg.php'
+            ),
+            'labels' => array(
+                'interfaces' => T('Interfaces'),
+                'views' => T('Views'),
+                'themes' => T('Themes'),
+                'chartSize' => T('Chart size'),
+                'overview' => T('Overview'),
+                'details' => T('Details'),
+                'visualization' => T('Visualization'),
+                'trafficChart' => T('Traffic chart'),
+                'summaryTitle' => T('Summary'),
+                'summaryDescription' => T('Current usage rolled up by hour, day, month and total lifetime traffic.'),
+                'loading' => T('Loading traffic data...'),
+                'loadingMessage' => T('Requesting the current vnStat view for this interface.'),
+                'retry' => T('Retry'),
+                'requestFailed' => T('Unable to load traffic data.'),
+                'footer' => T('vnStat React frontend powered by the original PHP data layer.'),
+                'period' => T('Period'),
+                'themeWord' => T('Theme'),
+                'summaryView' => T('Summary view'),
+                'compactChart' => T('Compact chart'),
+                'fullChart' => T('Full chart'),
+                'chartHidden' => T('Chart hidden'),
+                'noTrafficDataTitle' => T('No traffic data yet'),
+                'noTrafficDataMessage' => T('vnStat returned no current counters for this interface.'),
+                'noChartDataTitle' => T('No chart data available'),
+                'noChartDataMessage' => T('vnStat has not returned enough samples to draw this time range yet.'),
+                'in' => T('In'),
+                'out' => T('Out'),
+                'total' => T('Total')
+            )
+        );
+
+        foreach ($iface_list as $if) {
+            $payload['options']['ifaces'][] = array(
+                'id' => $if,
+                'label' => iface_label($if),
+                'meta' => $if
+            );
         }
-        print "  </div>\n";
-        print "</div>\n";
+
+        foreach ($page_list as $pg) {
+            $payload['options']['pages'][] = array(
+                'id' => $pg,
+                'label' => isset($page_title[$pg]) ? ucfirst($page_title[$pg]) : $pg
+            );
+        }
+
+        foreach ($graph_labels as $graph_key => $graph_label) {
+            $payload['options']['graphs'][] = array(
+                'id' => $graph_key,
+                'label' => $graph_label
+            );
+        }
+
+        return $payload;
     }
 
-    function write_summary_cards()
-    {
-        $cards = build_summary_cards();
-
-        print "<section class=\"panel\">\n";
-        print "  <div class=\"panel-header\">\n";
-        print "    <div>\n";
-        print "      <p class=\"panel-kicker\">Overview</p>\n";
-        print '      <h2>'.h(T('Summary'))."</h2>\n";
-        print "    </div>\n";
-        print "    <p class=\"panel-description\">Current usage rolled up by hour, day, month and total lifetime traffic.</p>\n";
-        print "  </div>\n";
-
-        if (count($cards) === 0) {
-            write_empty_state('No traffic data yet', 'vnStat returned no current counters for this interface.');
-            print "</section>\n";
-            return;
-        }
-
-        print "  <div class=\"summary-grid\">\n";
-        foreach ($cards as $card) {
-            $rx = isset($card['rx']) ? $card['rx'] : 0;
-            $tx = isset($card['tx']) ? $card['tx'] : 0;
-            $total = $rx + $tx;
-
-            print "    <article class=\"metric-card\">\n";
-            print '      <p class="metric-label">'.h($card['label'])."</p>\n";
-            print '      <p class="metric-total">'.h(kbytes_to_string($total))."</p>\n";
-            print "      <div class=\"metric-breakdown\">\n";
-            print "        <div class=\"metric-pair metric-pair-in\">\n";
-            print "          <span class=\"metric-caption\">".h(T('In'))."</span>\n";
-            print '          <strong>'.h(kbytes_to_string($rx))."</strong>\n";
-            print "        </div>\n";
-            print "        <div class=\"metric-pair metric-pair-out\">\n";
-            print "          <span class=\"metric-caption\">".h(T('Out'))."</span>\n";
-            print '          <strong>'.h(kbytes_to_string($tx))."</strong>\n";
-            print "        </div>\n";
-            print "      </div>\n";
-            print "    </article>\n";
-        }
-        print "  </div>\n";
-        print "</section>\n";
-    }
-
-    function write_data_table($caption, $tab, $empty_message)
-    {
-        print "<section class=\"panel\">\n";
-        print "  <div class=\"panel-header\">\n";
-        print "    <div>\n";
-        print "      <p class=\"panel-kicker\">Details</p>\n";
-        print '      <h2>'.h($caption)."</h2>\n";
-        print "    </div>\n";
-        print "  </div>\n";
-
-        if (count($tab) === 0) {
-            write_empty_state('No data available', $empty_message);
-            print "</section>\n";
-            return;
-        }
-
-        print "  <div class=\"table-scroll\">\n";
-        print "    <table class=\"traffic-table\">\n";
-        print '      <caption class="sr-only">'.h($caption)."</caption>\n";
-        print "      <thead>\n";
-        print "        <tr>\n";
-        print "          <th scope=\"col\">Period</th>\n";
-        print '          <th scope="col">'.h(T('In'))."</th>\n";
-        print '          <th scope="col">'.h(T('Out'))."</th>\n";
-        print '          <th scope="col">'.h(T('Total'))."</th>\n";
-        print "        </tr>\n";
-        print "      </thead>\n";
-        print "      <tbody>\n";
-
-        for ($i = 0; $i < count($tab); $i++) {
-            if (!isset($tab[$i]['act']) || $tab[$i]['act'] != 1) {
-                continue;
-            }
-
-            $label = isset($tab[$i]['label']) ? $tab[$i]['label'] : '';
-            $rx = isset($tab[$i]['rx']) ? $tab[$i]['rx'] : 0;
-            $tx = isset($tab[$i]['tx']) ? $tab[$i]['tx'] : 0;
-            $total = $rx + $tx;
-
-            print "        <tr>\n";
-            print '          <th scope="row">'.h($label)."</th>\n";
-            print '          <td class="numeric">'.h(kbytes_to_string($rx))."</td>\n";
-            print '          <td class="numeric">'.h(kbytes_to_string($tx))."</td>\n";
-            print '          <td class="numeric total-cell">'.h(kbytes_to_string($total))."</td>\n";
-            print "        </tr>\n";
-        }
-
-        print "      </tbody>\n";
-        print "    </table>\n";
-        print "  </div>\n";
-
-        print "  <div class=\"traffic-list\">\n";
-        for ($i = 0; $i < count($tab); $i++) {
-            if (!isset($tab[$i]['act']) || $tab[$i]['act'] != 1) {
-                continue;
-            }
-
-            $label = isset($tab[$i]['label']) ? $tab[$i]['label'] : '';
-            $rx = isset($tab[$i]['rx']) ? $tab[$i]['rx'] : 0;
-            $tx = isset($tab[$i]['tx']) ? $tab[$i]['tx'] : 0;
-            $total = $rx + $tx;
-
-            print "    <article class=\"traffic-item\">\n";
-            print '      <h3>'.h($label)."</h3>\n";
-            print "      <dl class=\"traffic-stats\">\n";
-            print "        <div>\n";
-            print "          <dt>".h(T('In'))."</dt>\n";
-            print '          <dd>'.h(kbytes_to_string($rx))."</dd>\n";
-            print "        </div>\n";
-            print "        <div>\n";
-            print "          <dt>".h(T('Out'))."</dt>\n";
-            print '          <dd>'.h(kbytes_to_string($tx))."</dd>\n";
-            print "        </div>\n";
-            print "        <div>\n";
-            print "          <dt>".h(T('Total'))."</dt>\n";
-            print '          <dd class="traffic-total">'.h(kbytes_to_string($total))."</dd>\n";
-            print "        </div>\n";
-            print "      </dl>\n";
-            print "    </article>\n";
-        }
-        print "  </div>\n";
-        print "</section>\n";
-    }
-
-    get_vnstat_data();
-
-    $current_iface_title = iface_label($iface);
-    $page_heading = active_view_title();
-    $graph_source = graph_source_url();
-    $document_title = $page_heading.' - '.T('Traffic data for').' '.$current_iface_title.' ('.$iface.')';
+    $manifest_entry = read_asset_manifest();
+    $bootstrap = bootstrap_payload();
 
     header('Content-type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo h(strtolower(substr($language, 0, 2))); ?>">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title><?php echo h($document_title); ?></title>
-  <meta name="description" content="Responsive vnStat traffic dashboard for interface statistics."/>
-  <link rel="stylesheet" type="text/css" href="themes/<?php echo h($style); ?>/style.css"/>
+  <title><?php echo h($bootstrap['documentTitle']); ?></title>
+  <meta name="description" content="React-based vnStat traffic dashboard with PHP-backed data endpoints."/>
+  <link id="theme-stylesheet" rel="stylesheet" href="themes/<?php echo h($style); ?>/style.css"/>
+<?php render_react_assets($manifest_entry); ?>
 </head>
-<body class="theme-<?php echo h($style); ?>">
-  <div class="page-shell">
-    <?php write_sidebar(); ?>
-
-    <main class="content">
-      <header class="hero panel">
-        <div class="hero-copy">
-          <div class="hero-meta">
-            <span class="meta-pill"><?php echo h(active_view_title()); ?></span>
-            <span class="meta-pill"><?php echo h(graph_mode_label()); ?></span>
-            <span class="meta-pill"><?php echo h('Theme: '.ucfirst($style)); ?></span>
-          </div>
+<body>
+  <?php if ($manifest_entry === null) { ?>
+  <main class="build-warning">
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-kicker">Build required</p>
+          <h2>React assets are missing</h2>
         </div>
-        <?php if ($page != 's') { write_graph_switcher(); } ?>
-      </header>
-
-      <?php write_summary_cards(); ?>
-
-      <?php if ($page != 's' && $graph != 'none') { ?>
+      </div>
+      <div class="empty-state">
+        <h3>The PHP shell is ready, but the frontend bundle has not been built yet.</h3>
+        <p>Install Node dependencies and build the React app before loading this page in production.</p>
+      </div>
+      <pre>npm install
+npm run build</pre>
+    </section>
+  </main>
+  <?php } ?>
+  <div id="app-root"></div>
+  <script>
+    window.__VNSTAT_BOOTSTRAP__ = <?php echo json_encode($bootstrap, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+  </script>
+  <noscript>
+    <main class="build-warning">
       <section class="panel">
-        <div class="panel-header">
-          <div>
-            <p class="panel-kicker">Visualization</p>
-            <h2>Traffic chart</h2>
-          </div>
-          <p class="panel-description">Scales fluidly from phones to large displays without fixed-width breakpoints.</p>
-        </div>
-        <div class="graph-frame">
-          <img class="graph-media" src="<?php echo h($graph_source); ?>" alt="<?php echo h(T('Traffic data for').' '.$current_iface_title); ?>"/>
+        <div class="empty-state">
+          <h3>JavaScript is required</h3>
+          <p>The React frontend needs JavaScript enabled to render the vnStat dashboard.</p>
         </div>
       </section>
-      <?php } ?>
-
-      <?php
-        if ($page == 's') {
-            write_data_table(T('Top 10 days'), $top, 'Daily peak history is not available yet for this interface.');
-        } else if ($page == 'h') {
-            write_data_table(T('Last 24 hours'), $hour, 'Hourly statistics are not available yet for this interface.');
-        } else if ($page == 'd') {
-            write_data_table(T('Last 30 days'), $day, 'Daily statistics are not available yet for this interface.');
-        } else if ($page == 'm') {
-            write_data_table(T('Last 12 months'), $month, 'Monthly statistics are not available yet for this interface.');
-        }
-      ?>
-
-      <footer class="footer">
-        <p>vnStat PHP frontend 1.5.2, refreshed with a responsive layout while keeping the original data interfaces intact.</p>
-      </footer>
     </main>
-  </div>
+  </noscript>
 </body>
 </html>

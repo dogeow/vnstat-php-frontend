@@ -7,11 +7,12 @@ For more information about vnstat check out http://humdi.net/vnstat/
 For updates to this script check http://www.sqweek.com
 
 
-1. REQUIREMENTS 
+1. REQUIREMENTS
 
 - vnstat setup and collecting data
 - webserver with PHP
 - php-gd extension installed for PNG graphs
+- Node.js + npm if you want to rebuild the React frontend bundle
 
 
 2. INSTALL
@@ -20,8 +21,17 @@ Installation should be really straightforward:
 
 Put the files from this package somewhere inside the webroot of
 your webserver. Then edit the few configuration options in config.php
-to suit your situation and your good to go. The various options are
-explained in config.php.
+to suit your situation.
+
+This project now uses a React frontend bundle on top of the original
+PHP data layer. For development or if the `dist/` assets are missing,
+build the frontend once:
+
+    npm install
+    npm run build
+
+After that, deploy the repository contents as usual on your PHP host.
+The various options are explained in config.php.
 
 
 3. LICENSE
@@ -47,6 +57,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 NOTE:
   The Truetype font file VeraBd.ttf is copyright by Bitstream Inc. 
   See vera_copyright.txt for more information.
-
 
 
