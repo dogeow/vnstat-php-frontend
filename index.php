@@ -31,33 +31,26 @@
     function available_styles()
     {
         $styles = array();
-        $entries = @scandir(__DIR__.'/themes');
+        $candidates = array(
+            'light' => T('Light'),
+            'dark' => T('Dark')
+        );
 
-        if ($entries === false) {
-            return array(array('id' => DEFAULT_COLORSCHEME, 'label' => ucfirst(DEFAULT_COLORSCHEME)));
-        }
-
-        foreach ($entries as $entry) {
-            if ($entry === '.' || $entry === '..' || $entry === 'common.css') {
+        foreach ($candidates as $style_id => $label) {
+            $theme_dir = __DIR__.'/themes/'.$style_id;
+            if (!is_dir($theme_dir) || !file_exists($theme_dir.'/style.css') || !file_exists($theme_dir.'/theme.php')) {
                 continue;
             }
 
-            $theme_dir = __DIR__.'/themes/'.$entry;
-            if (is_dir($theme_dir) && file_exists($theme_dir.'/style.css') && file_exists($theme_dir.'/theme.php')) {
-                $styles[] = array(
-                    'id' => $entry,
-                    'label' => ucfirst($entry)
-                );
-            }
+            $styles[] = array(
+                'id' => $style_id,
+                'label' => $label
+            );
         }
 
         if (count($styles) === 0) {
-            $styles[] = array('id' => DEFAULT_COLORSCHEME, 'label' => ucfirst(DEFAULT_COLORSCHEME));
+            $styles[] = array('id' => DEFAULT_COLORSCHEME, 'label' => T('Light'));
         }
-
-        usort($styles, function ($left, $right) {
-            return strcmp($left['label'], $right['label']);
-        });
 
         return $styles;
     }

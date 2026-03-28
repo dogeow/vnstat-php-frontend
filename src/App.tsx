@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow
 } from "./components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { buildSearch, fetchAppPayload, parseRoute, type AppRoute } from "./lib/api";
 import { formatCompactKbytes, tooltipRows } from "./lib/format";
 import { cn } from "./lib/utils";
@@ -95,14 +96,6 @@ function sectionKicker(label: string) {
   );
 }
 
-function navButtonClass(active: boolean) {
-  return cn(
-    buttonVariants({ variant: active ? "default" : "outline", size: "lg" }),
-    "h-auto w-full justify-between rounded-2xl px-4 py-3 text-left shadow-none",
-    !active && "bg-card/80 hover:bg-secondary"
-  );
-}
-
 function SummarySection({
   cards,
   bootstrap
@@ -130,20 +123,30 @@ function SummarySection({
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {cards.map((card) => (
-              <Card
-                key={card.id}
-                className="rounded-[24px] border-border/80 bg-card/95 shadow-none"
-              >
-                <CardContent className="p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <Tabs defaultValue={cards[0]?.id} className="w-full">
+            <ScrollArea className="w-full whitespace-nowrap">
+              <TabsList className="w-max">
+                {cards.map((card) => (
+                  <TabsTrigger key={card.id} value={card.id}>
                     {card.label}
-                  </p>
-                  <p className="mt-3 text-3xl font-semibold tracking-tight">
-                    {card.formatted.total}
-                  </p>
-                  <div className="mt-4 grid gap-3">
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+
+            {cards.map((card) => (
+              <TabsContent key={card.id} value={card.id}>
+                <Card className="rounded-[24px] border-border/80 bg-card/95 shadow-none">
+                  <CardContent className="grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_280px_280px] md:items-end">
+                    <div className="space-y-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        {card.label}
+                      </p>
+                      <p className="text-3xl font-semibold tracking-tight">
+                        {card.formatted.total}
+                      </p>
+                    </div>
                     <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-3">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         {bootstrap.labels.in}
@@ -160,11 +163,11 @@ function SummarySection({
                         {card.formatted.tx}
                       </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         )}
       </CardContent>
     </Card>
@@ -505,73 +508,89 @@ export default function App({ bootstrap }: AppProps) {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-8">
-        <aside className="space-y-4">
-          <Card>
-            <CardHeader className="pb-4">
-              {sectionKicker(bootstrap.labels.interfaces)}
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                {bootstrap.options.ifaces.map((option) => {
-                  const href = navHref({ ...route, iface: option.id });
-                  const active = route.iface === option.id;
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="space-y-4">
+          <Card className="overflow-hidden">
+            <CardContent className="space-y-5 p-4 md:p-5">
+              <div className="space-y-3">
+                {sectionKicker(bootstrap.labels.interfaces)}
+                <ScrollArea className="w-full whitespace-nowrap">
+                  <div className="flex items-center gap-2 pr-4">
+                    {bootstrap.options.ifaces.map((option) => {
+                      const href = navHref({ ...route, iface: option.id });
+                      const active = route.iface === option.id;
 
-                  return (
-                    <a
-                      key={option.id}
-                      className={navButtonClass(active)}
-                      href={href}
-                      aria-current={active ? "page" : undefined}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        navigate({ iface: option.id });
-                      }}
-                    >
-                      <span className="flex flex-col items-start gap-1">
-                        <span>{option.label}</span>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {option.meta ?? option.id}
-                        </span>
-                      </span>
-                    </a>
-                  );
-                })}
+                      return (
+                        <a
+                          key={option.id}
+                          className={cn(
+                            buttonVariants({
+                              variant: active ? "default" : "outline",
+                              size: "sm"
+                            }),
+                            "h-auto min-w-fit rounded-full px-4 py-2 shadow-none"
+                          )}
+                          href={href}
+                          aria-current={active ? "page" : undefined}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            navigate({ iface: option.id });
+                          }}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{option.label}</span>
+                            <span className="font-mono text-[11px] text-muted-foreground">
+                              {option.meta ?? option.id}
+                            </span>
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </div>
+
+              <div className="space-y-3">
+                {sectionKicker(bootstrap.labels.views)}
+                <Tabs value={route.page} className="w-full">
+                  <ScrollArea className="w-full whitespace-nowrap">
+                    <TabsList className="h-auto w-max gap-2 rounded-[1.35rem] p-1.5">
+                      {bootstrap.options.pages.map((option) => {
+                        const href = navHref({
+                          ...route,
+                          page: option.id as AppRoute["page"]
+                        });
+
+                        return (
+                          <TabsTrigger
+                            key={option.id}
+                            value={option.id}
+                            className="min-w-[108px] rounded-[1rem] px-5 py-3 text-sm"
+                            asChild
+                          >
+                            <a
+                              href={href}
+                              aria-current={route.page === option.id ? "page" : undefined}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                navigate({ page: option.id as AppRoute["page"] });
+                              }}
+                            >
+                              {option.label}
+                            </a>
+                          </TabsTrigger>
+                        );
+                      })}
+                    </TabsList>
+                    <ScrollBar orientation="horizontal" />
+                  </ScrollArea>
+                </Tabs>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-4">
-              {sectionKicker(bootstrap.labels.views)}
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                {bootstrap.options.pages.map((option) => {
-                  const href = navHref({ ...route, page: option.id as AppRoute["page"] });
-                  const active = route.page === option.id;
-
-                  return (
-                    <a
-                      key={option.id}
-                      className={navButtonClass(active)}
-                      href={href}
-                      aria-current={active ? "page" : undefined}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        navigate({ page: option.id as AppRoute["page"] });
-                      }}
-                    >
-                      <span>{option.label}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </aside>
-
-        <main className="space-y-4">
+          <main className="space-y-4">
           {loading && !payload ? (
             <Card>
               <CardContent className="p-6">
@@ -616,7 +635,8 @@ export default function App({ bootstrap }: AppProps) {
           <div className="px-2 pb-6 text-center text-sm text-muted-foreground">
             {bootstrap.labels.footer}
           </div>
-        </main>
+          </main>
+        </div>
       </div>
     </div>
   );

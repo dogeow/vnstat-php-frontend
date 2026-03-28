@@ -43,6 +43,7 @@
     $page_list  = array('s','h','d','m');
 
     $graph_list = array('large','small','none');
+    $style_list = array('light', 'dark');
 
     $page_title['s'] = T('summary');
     $page_title['h'] = T('hours');
@@ -58,7 +59,7 @@
         global $page,  $page_list;
         global $iface, $iface_list;
         global $graph, $graph_list;
-	global $colorscheme, $style;
+	global $colorscheme, $style, $style_list;
         //
         // get interface data
         //
@@ -83,7 +84,7 @@
         }
 
 	$tp = "./themes/$style";
-        if (!is_dir($tp) || !file_exists("$tp/theme.php") || !preg_match('/^[a-z0-9-_]+$/i', $style))
+        if (!in_array($style, $style_list) || !is_dir($tp) || !file_exists("$tp/theme.php") || !preg_match('/^[a-z0-9-_]+$/i', $style))
         {
 	    $style = DEFAULT_COLORSCHEME;
         }

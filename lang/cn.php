@@ -28,6 +28,8 @@ $L['All time'] = '总计';
 $L['Traffic data for'] = '统计的网络：';
 $L['bytes in'] = '流入bytes';
 $L['bytes out'] = '流出bytes';
+$L['Light'] = '浅色';
+$L['Dark'] = '深色';
 
 // date formats
 $L['datefmt_days'] = '%B%d日';
@@ -37,4 +39,3 @@ $L['datefmt_months_img'] = '%b';
 $L['datefmt_hours'] = '%H:00';
 $L['datefmt_hours_img'] = '%H';
 $L['datefmt_top'] = '%Y年%m月%d日';
-

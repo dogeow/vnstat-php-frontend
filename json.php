@@ -120,6 +120,9 @@
         $total_rx = (isset($summary['totalrx']) ? $summary['totalrx'] : 0) * 1024 + (isset($summary['totalrxk']) ? $summary['totalrxk'] : 0);
         $total_tx = (isset($summary['totaltx']) ? $summary['totaltx'] : 0) * 1024 + (isset($summary['totaltxk']) ? $summary['totaltxk'] : 0);
 
+        if ($total_rx > 0 || $total_tx > 0 || count($cards) > 0) {
+            $cards[] = summary_card_record('total', T('All time'), $total_rx, $total_tx);
+        }
         if (isset($hour[0])) {
             $cards[] = summary_card_record('hour', T('This hour'), $hour[0]['rx'], $hour[0]['tx']);
         }
@@ -128,9 +131,6 @@
         }
         if (isset($month[0])) {
             $cards[] = summary_card_record('month', T('This month'), $month[0]['rx'], $month[0]['tx']);
-        }
-        if ($total_rx > 0 || $total_tx > 0 || count($cards) > 0) {
-            $cards[] = summary_card_record('total', T('All time'), $total_rx, $total_tx);
         }
 
         return $cards;
