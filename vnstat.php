@@ -104,6 +104,139 @@
     }
 
 
+    function run_vnstat_command($arguments)
+    {
+        global $vnstat_bin;
+
+        if (!isset($vnstat_bin) || $vnstat_bin == '' || !is_executable($vnstat_bin)) {
+            return '';
+        }
+
+        $command = escapeshellarg($vnstat_bin).' '.$arguments.' 2>/dev/null';
+        $fd = popen($command, "r");
+        if (!is_resource($fd)) {
+            return '';
+        }
+
+        $buffer = '';
+        while (!feof($fd)) {
+            $buffer .= fgets($fd);
+        }
+        pclose($fd);
+
+        return $buffer;
+    }
+
+
+    function bytes_to_kbytes($bytes)
+    {
+        return $bytes / 1024;
+    }
+
+
+    function fill_summary_totals_from_bytes($rx_bytes, $tx_bytes)
+    {
+        global $summary;
+
+        $rx_kbytes = (int) floor(bytes_to_kbytes($rx_bytes));
+        $tx_kbytes = (int) floor(bytes_to_kbytes($tx_bytes));
+
+        $summary['totalrx'] = (int) floor($rx_kbytes / 1024);
+        $summary['totalrxk'] = $rx_kbytes % 1024;
+        $summary['totaltx'] = (int) floor($tx_kbytes / 1024);
+        $summary['totaltxk'] = $tx_kbytes % 1024;
+    }
+
+
+    function normalize_vnstat_json_list($entries)
+    {
+        if (!is_array($entries)) {
+            return array();
+        }
+
+        usort($entries, function ($left, $right) {
+            $left_ts = isset($left['timestamp']) ? (int) $left['timestamp'] : 0;
+            $right_ts = isset($right['timestamp']) ? (int) $right['timestamp'] : 0;
+            if ($left_ts == $right_ts) {
+                return 0;
+            }
+
+            return ($left_ts > $right_ts) ? -1 : 1;
+        });
+
+        return $entries;
+    }
+
+
+    function build_vnstat_json_bucket($entries, $type, $use_label)
+    {
+        $bucket = array();
+        $entries = normalize_vnstat_json_list($entries);
+
+        for ($i = 0; $i < count($entries); $i++) {
+            $entry = $entries[$i];
+            $timestamp = isset($entry['timestamp']) ? (int) $entry['timestamp'] : 0;
+            $rx = isset($entry['rx']) ? bytes_to_kbytes($entry['rx']) : 0;
+            $tx = isset($entry['tx']) ? bytes_to_kbytes($entry['tx']) : 0;
+
+            $bucket[$i]['time'] = $timestamp;
+            $bucket[$i]['rx'] = $rx;
+            $bucket[$i]['tx'] = $tx;
+            $bucket[$i]['act'] = 1;
+
+            if (!$use_label) {
+                continue;
+            }
+
+            if ($type == 'day') {
+                $bucket[$i]['label'] = $timestamp ? vnstat_format_time(T('datefmt_days'), $timestamp) : '';
+                $bucket[$i]['img_label'] = $timestamp ? vnstat_format_time(T('datefmt_days_img'), $timestamp) : '';
+            } else if ($type == 'month') {
+                $bucket[$i]['label'] = $timestamp ? vnstat_format_time(T('datefmt_months'), $timestamp) : '';
+                $bucket[$i]['img_label'] = $timestamp ? vnstat_format_time(T('datefmt_months_img'), $timestamp) : '';
+            } else if ($type == 'hour') {
+                $start = $timestamp ? ($timestamp - ($timestamp % 3600)) : 0;
+                $end = $start + 3600;
+                $bucket[$i]['label'] = $timestamp ? vnstat_format_time(T('datefmt_hours'), $start).' - '.vnstat_format_time(T('datefmt_hours'), $end) : '';
+                $bucket[$i]['img_label'] = $timestamp ? vnstat_format_time(T('datefmt_hours_img'), $timestamp) : '';
+            } else if ($type == 'top') {
+                $bucket[$i]['label'] = $timestamp ? vnstat_format_time(T('datefmt_top'), $timestamp) : '';
+                $bucket[$i]['img_label'] = '';
+            }
+        }
+
+        return $bucket;
+    }
+
+
+    function parse_vnstat_json_data($json, $use_label)
+    {
+        global $hour, $day, $month, $top, $summary;
+
+        $decoded = json_decode($json, true);
+        if (!is_array($decoded) || !isset($decoded['interfaces'][0]['traffic'])) {
+            return false;
+        }
+
+        $traffic = $decoded['interfaces'][0]['traffic'];
+
+        $summary = array();
+        $hour = build_vnstat_json_bucket(isset($traffic['hour']) ? $traffic['hour'] : array(), 'hour', $use_label);
+        $day = build_vnstat_json_bucket(isset($traffic['day']) ? $traffic['day'] : array(), 'day', $use_label);
+        $month = build_vnstat_json_bucket(isset($traffic['month']) ? $traffic['month'] : array(), 'month', $use_label);
+        $top = build_vnstat_json_bucket(isset($traffic['top']) ? $traffic['top'] : array(), 'top', $use_label);
+
+        if (isset($traffic['total']) && is_array($traffic['total'])) {
+            fill_summary_totals_from_bytes(
+                isset($traffic['total']['rx']) ? (int) $traffic['total']['rx'] : 0,
+                isset($traffic['total']['tx']) ? (int) $traffic['total']['tx'] : 0
+            );
+        }
+
+        return true;
+    }
+
+
     function vnstat_icu_pattern($pattern)
     {
         return strtr($pattern, array(
@@ -187,20 +320,23 @@
         global $iface, $vnstat_bin, $data_dir;
         global $hour,$day,$month,$top,$summary;
 
-	$vnstat_data = array();
-        if (isset($vnstat_bin) && $vnstat_bin != '' && is_executable($vnstat_bin))
+        $summary = array();
+        $day = array();
+        $hour = array();
+        $month = array();
+        $top = array();
+
+        $json_output = run_vnstat_command('--json -i '.escapeshellarg($iface));
+        if ($json_output !== '' && parse_vnstat_json_data($json_output, $use_label))
         {
-            $command = escapeshellarg($vnstat_bin).' --dumpdb -i '.escapeshellarg($iface).' 2>/dev/null';
-            $fd = popen($command, "r");
-            if (is_resource($fd))
-            {
-            	$buffer = '';
-            	while (!feof($fd)) {
-                	$buffer .= fgets($fd);
-            	}
-            	$vnstat_data = explode("\n", $buffer);
-            	pclose($fd);
-            }
+            return;
+        }
+
+	$vnstat_data = array();
+        $legacy_output = run_vnstat_command('--dumpdb -i '.escapeshellarg($iface));
+        if ($legacy_output !== '')
+        {
+            $vnstat_data = explode("\n", $legacy_output);
         }
 
         if (count($vnstat_data) === 0)
@@ -217,11 +353,6 @@
             }
         }
 
-
-        $day = array();
-        $hour = array();
-        $month = array();
-        $top = array();
 
         if (isset($vnstat_data[0]) && strpos($vnstat_data[0], 'Error') !== false) {
           return;
