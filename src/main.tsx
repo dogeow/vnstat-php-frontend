@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import "./styles.css";
+import "./index.css";
 import type { Bootstrap } from "./types";
 
 const bootstrap = window.__VNSTAT_BOOTSTRAP__ as Bootstrap | undefined;

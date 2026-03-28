@@ -131,6 +131,8 @@
                 'settings' => T('Settings'),
                 'themes' => T('Themes'),
                 'chartSize' => T('Chart size'),
+                'showSettings' => T('Show settings'),
+                'hideSettings' => T('Hide settings'),
                 'overview' => T('Overview'),
                 'details' => T('Details'),
                 'visualization' => T('Visualization'),

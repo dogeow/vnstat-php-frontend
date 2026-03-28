@@ -33,6 +33,8 @@ export interface Bootstrap {
     settings: string;
     themes: string;
     chartSize: string;
+    showSettings: string;
+    hideSettings: string;
     overview: string;
     details: string;
     visualization: string;
