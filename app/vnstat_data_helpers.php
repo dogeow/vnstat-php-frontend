@@ -104,15 +104,19 @@
         ];
     }
 
-    function vnstat_data_normalize_json_list($entries)
+    function vnstat_data_normalize_json_list($entries, $type)
     {
         if (!is_array($entries)) {
             return [];
         }
 
-        usort($entries, function ($left, $right) {
-            $leftTimestamp = isset($left['timestamp']) ? (int) $left['timestamp'] : 0;
-            $rightTimestamp = isset($right['timestamp']) ? (int) $right['timestamp'] : 0;
+        if ($type === 'top') {
+            return $entries;
+        }
+
+        usort($entries, function ($left, $right) use ($type) {
+            $leftTimestamp = vnstat_data_json_timestamp($left, $type);
+            $rightTimestamp = vnstat_data_json_timestamp($right, $type);
 
             if ($leftTimestamp === $rightTimestamp) {
                 return 0;
@@ -250,7 +254,7 @@
     {
         $bucket = [];
 
-        foreach (vnstat_data_normalize_json_list($entries) as $index => $entry) {
+        foreach (vnstat_data_normalize_json_list($entries, $type) as $index => $entry) {
             $timestamp = vnstat_data_json_timestamp($entry, $type);
             $row = [
                 'time' => $timestamp,

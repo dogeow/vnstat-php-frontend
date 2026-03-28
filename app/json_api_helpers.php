@@ -94,7 +94,11 @@
                 'title' => __('Top 10 days'),
                 'emptyTitle' => __('No data available'),
                 'emptyMessage' => __('Daily peak history is not available yet for this interface.'),
-                'rows' => json_api_filtered_rows(isset($trafficData['top']) ? $trafficData['top'] : [], 'top', $byteNotation),
+                'rows' => array_slice(
+                    json_api_filtered_rows(isset($trafficData['top']) ? $trafficData['top'] : [], 'top', $byteNotation),
+                    0,
+                    10
+                ),
             ];
         }
 

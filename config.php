@@ -35,6 +35,6 @@
         'byteNotation' => null,
         'defaultStyle' => 'light',
         'pageList' => ['s', 'h', 'd', 'm'],
-        'graphList' => ['large', 'small', 'none'],
+        'graphList' => ['small'],
         'styleList' => ['light', 'dark'],
     ];

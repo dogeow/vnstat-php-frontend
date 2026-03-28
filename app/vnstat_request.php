@@ -17,7 +17,7 @@
     function vnstat_request_validate(array $query, array $appConfig)
     {
         $pageList = isset($appConfig['pageList']) ? $appConfig['pageList'] : ['s', 'h', 'd', 'm'];
-        $graphList = isset($appConfig['graphList']) ? $appConfig['graphList'] : ['large', 'small', 'none'];
+        $graphList = isset($appConfig['graphList']) ? $appConfig['graphList'] : ['small'];
         $styleList = isset($appConfig['styleList']) ? $appConfig['styleList'] : ['light', 'dark'];
         $ifaceList = isset($appConfig['ifaceList']) ? $appConfig['ifaceList'] : [];
         $defaultStyle = isset($appConfig['defaultStyle']) ? $appConfig['defaultStyle'] : 'light';

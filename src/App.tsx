@@ -21,7 +21,6 @@ import { buttonVariants } from "./components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle
 } from "./components/ui/card";
@@ -42,7 +41,6 @@ import type {
   AppPayload,
   Bootstrap,
   DetailRow,
-  GraphKey,
   SummaryCard
 } from "./types";
 
@@ -110,133 +108,83 @@ function SummarySection({
   }, [cards]);
 
   return (
-    <Card>
-      <CardContent className="space-y-4 p-5 md:p-6">
-        {cards.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
-            <h3 className="text-lg font-semibold">{bootstrap.labels.noTrafficDataTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {bootstrap.labels.noTrafficDataMessage}
-            </p>
+    <div className="space-y-3">
+      {cards.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
+          <h3 className="text-lg font-semibold">{bootstrap.labels.noTrafficDataTitle}</h3>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {bootstrap.labels.noTrafficDataMessage}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            {cards.map((card) => {
+              const active = activeCardId === card.id;
+
+              return (
+                <button
+                  key={card.id}
+                  type="button"
+                  aria-pressed={active}
+                  className={cn(
+                    "flex min-h-[74px] w-full flex-col items-start justify-between rounded-[1.1rem] border border-border bg-card/90 px-2.5 py-2.5 text-left transition-colors sm:min-h-[82px] sm:px-3 sm:py-3",
+                    active && "border-[var(--accent-strong)] bg-card"
+                  )}
+                  onClick={() => {
+                    setActiveCardId((current) => (current === card.id ? null : card.id));
+                  }}
+                >
+                  <span className="text-[10px] font-semibold leading-tight text-muted-foreground sm:text-[11px]">
+                    {card.label}
+                  </span>
+                  <span className="text-[13px] font-semibold leading-tight tracking-tight text-card-foreground sm:text-[15px] md:text-base">
+                    {card.formatted.total}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        ) : (
-          <>
-            <ScrollArea className="w-full whitespace-nowrap">
-              <div className="flex min-w-max gap-3">
-                {cards.map((card) => {
-                  const active = activeCardId === card.id;
 
-                  return (
-                    <button
-                      key={card.id}
-                      type="button"
-                      aria-pressed={active}
-                      className={cn(
-                        "flex min-h-[92px] min-w-[160px] flex-1 flex-col items-start gap-1.5 rounded-[1.35rem] border border-border bg-card/90 px-4 py-3 text-left transition-colors md:min-w-[180px]",
-                        active && "border-[var(--accent-strong)] bg-card"
-                      )}
-                      onClick={() => {
-                        setActiveCardId((current) => (current === card.id ? null : card.id));
-                      }}
-                    >
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        {card.label}
-                      </span>
-                      <span className="text-lg font-semibold tracking-tight text-card-foreground md:text-xl">
-                        {card.formatted.total}
-                      </span>
-                    </button>
-                  );
-                })}
+          {activeCard ? (
+            <div className="grid gap-3 rounded-[1.35rem] border border-border bg-card/95 p-4 shadow-none md:grid-cols-2">
+              <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  {bootstrap.labels.in}
+                </p>
+                <p className="mt-1.5 font-mono text-sm font-semibold sm:text-base">
+                  {activeCard.formatted.rx}
+                </p>
               </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-
-            {activeCard ? (
-              <Card className="rounded-[24px] border-border/80 bg-card/95 shadow-none">
-                <CardContent className="grid gap-4 p-5 md:grid-cols-2">
-                  <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      {bootstrap.labels.in}
-                    </p>
-                    <p className="mt-2 font-mono text-base font-semibold">
-                      {activeCard.formatted.rx}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      {bootstrap.labels.out}
-                    </p>
-                    <p className="mt-2 font-mono text-base font-semibold">
-                      {activeCard.formatted.tx}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null}
-          </>
-        )}
-      </CardContent>
-    </Card>
+              <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  {bootstrap.labels.out}
+                </p>
+                <p className="mt-1.5 font-mono text-sm font-semibold sm:text-base">
+                  {activeCard.formatted.tx}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </>
+      )}
+    </div>
   );
 }
 
 function ChartSection({
   payload,
-  bootstrap,
-  route,
-  navigate
+  bootstrap
 }: {
   payload: AppPayload;
   bootstrap: Bootstrap;
-  route: AppRoute;
-  navigate: (partial: Partial<AppRoute>) => void;
 }) {
-  const chartClass =
-    payload.chart.size === "small" ? "h-[220px] md:h-[250px]" : "h-[280px] md:h-[360px]";
+  const chartClass = "h-[220px] md:h-[250px]";
 
   return (
     <Card>
-      <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <CardHeader>
         <CardTitle>{payload.chart.title}</CardTitle>
-        <div className="flex flex-col items-start gap-3 sm:items-end">
-          <CardDescription className="max-w-xl text-sm leading-6 sm:text-right">
-            {payload.chart.description}
-          </CardDescription>
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {bootstrap.labels.chartSize}
-            </span>
-            {bootstrap.options.graphs.map((option) => {
-              const href = navHref({
-                ...route,
-                graph: option.id as GraphKey
-              });
-              const active = route.graph === option.id;
-
-              return (
-                <a
-                  key={option.id}
-                  className={cn(
-                    buttonVariants({
-                      variant: active ? "default" : "outline",
-                      size: "sm"
-                    }),
-                    "rounded-full"
-                  )}
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    navigate({ graph: option.id as GraphKey });
-                  }}
-                >
-                  {option.label}
-                </a>
-              );
-            })}
-          </div>
-        </div>
       </CardHeader>
       <CardContent>
         {!payload.chart.enabled ? (
@@ -687,12 +635,7 @@ export default function App({ bootstrap }: AppProps) {
 
           {deferredPayload ? (
             <>
-              <ChartSection
-                payload={deferredPayload}
-                bootstrap={bootstrap}
-                route={route}
-                navigate={navigate}
-              />
+              <ChartSection payload={deferredPayload} bootstrap={bootstrap} />
               <DetailSection payload={deferredPayload} bootstrap={bootstrap} />
             </>
           ) : null}
