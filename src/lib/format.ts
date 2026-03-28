@@ -1,10 +1,9 @@
 import type { DetailRow } from "../types";
 
-export function formatKbytes(
+function formatUnitParts(
   kbytes: number,
-  locale: string,
   preferredUnit: string | null
-): string {
+): { value: number; unit: string } {
   const units = ["TB", "GB", "MB", "KB"] as const;
   let scale = 1024 * 1024 * 1024;
   let unitIndex = 0;
@@ -21,10 +20,23 @@ export function formatKbytes(
     }
   }
 
+  return {
+    value: kbytes / scale,
+    unit: units[unitIndex]
+  };
+}
+
+export function formatKbytes(
+  kbytes: number,
+  locale: string,
+  preferredUnit: string | null
+): string {
+  const parts = formatUnitParts(kbytes, preferredUnit);
+
   return `${new Intl.NumberFormat(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(kbytes / scale)} ${units[unitIndex]}`;
+  }).format(parts.value)} ${parts.unit}`;
 }
 
 export function formatCompactKbytes(
@@ -40,6 +52,26 @@ export function formatCompactKbytes(
   }
 
   return `${value}${unit}`;
+}
+
+export function formatAxisKbytes(
+  kbytes: number,
+  locale: string,
+  preferredUnit: string | null
+): string {
+  const parts = formatUnitParts(kbytes, preferredUnit);
+  let maximumFractionDigits = 2;
+
+  if (parts.value >= 100) {
+    maximumFractionDigits = 0;
+  } else if (parts.value >= 10) {
+    maximumFractionDigits = 1;
+  }
+
+  return `${new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits
+  }).format(parts.value)}${parts.unit}`;
 }
 
 export function tooltipRows(

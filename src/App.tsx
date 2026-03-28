@@ -34,7 +34,7 @@ import {
 } from "./components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { buildSearch, fetchAppPayload, parseRoute, type AppRoute } from "./lib/api";
-import { formatCompactKbytes, tooltipRows } from "./lib/format";
+import { formatAxisKbytes, formatCompactKbytes, tooltipRows } from "./lib/format";
 import { cn } from "./lib/utils";
 import type {
   AppPayload,
@@ -213,13 +213,13 @@ function ChartSection({
               axisLine={false}
               tick={{ fill: "var(--muted)", fontSize: 12 }}
               tickFormatter={(value: number) =>
-                formatCompactKbytes(
+                formatAxisKbytes(
                   value,
                   bootstrap.language,
                   bootstrap.byteNotation
                 )
               }
-              width={56}
+              width={60}
             />
             <Tooltip
               content={
