@@ -219,7 +219,7 @@ function ChartSection({
                   bootstrap.byteNotation
                 )
               }
-              width={54}
+              width={56}
             />
             <Tooltip
               content={
