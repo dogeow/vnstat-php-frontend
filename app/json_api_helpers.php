@@ -60,6 +60,15 @@
         return $items;
     }
 
+    function json_api_limited_rows($rows, $prefix, $byteNotation, $limit)
+    {
+        return array_slice(
+            json_api_filtered_rows($rows, $prefix, $byteNotation),
+            0,
+            $limit
+        );
+    }
+
     function json_api_build_summary_cards(array $trafficData, $byteNotation)
     {
         $cards = [];
@@ -94,9 +103,10 @@
                 'title' => __('Top 10 days'),
                 'emptyTitle' => __('No data available'),
                 'emptyMessage' => __('Daily peak history is not available yet for this interface.'),
-                'rows' => array_slice(
-                    json_api_filtered_rows(isset($trafficData['top']) ? $trafficData['top'] : [], 'top', $byteNotation),
-                    0,
+                'rows' => json_api_limited_rows(
+                    isset($trafficData['top']) ? $trafficData['top'] : [],
+                    'top',
+                    $byteNotation,
                     10
                 ),
             ];
@@ -108,7 +118,12 @@
                 'title' => __('Last 24 hours'),
                 'emptyTitle' => __('No data available'),
                 'emptyMessage' => __('Hourly statistics are not available yet for this interface.'),
-                'rows' => json_api_filtered_rows(isset($trafficData['hour']) ? $trafficData['hour'] : [], 'hour', $byteNotation),
+                'rows' => json_api_limited_rows(
+                    isset($trafficData['hour']) ? $trafficData['hour'] : [],
+                    'hour',
+                    $byteNotation,
+                    24
+                ),
             ];
         }
 
@@ -118,7 +133,12 @@
                 'title' => __('Last 30 days'),
                 'emptyTitle' => __('No data available'),
                 'emptyMessage' => __('Daily statistics are not available yet for this interface.'),
-                'rows' => json_api_filtered_rows(isset($trafficData['day']) ? $trafficData['day'] : [], 'day', $byteNotation),
+                'rows' => json_api_limited_rows(
+                    isset($trafficData['day']) ? $trafficData['day'] : [],
+                    'day',
+                    $byteNotation,
+                    30
+                ),
             ];
         }
 
@@ -127,7 +147,12 @@
             'title' => __('Last 12 months'),
             'emptyTitle' => __('No data available'),
             'emptyMessage' => __('Monthly statistics are not available yet for this interface.'),
-            'rows' => json_api_filtered_rows(isset($trafficData['month']) ? $trafficData['month'] : [], 'month', $byteNotation),
+            'rows' => json_api_limited_rows(
+                isset($trafficData['month']) ? $trafficData['month'] : [],
+                'month',
+                $byteNotation,
+                12
+            ),
         ];
     }
 
