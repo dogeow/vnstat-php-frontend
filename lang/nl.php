@@ -39,7 +39,6 @@ $L['Overview'] = 'Overzicht';
 $L['Details'] = 'Details';
 $L['Visualization'] = 'Visualisatie';
 $L['Traffic chart'] = 'Verkeersgrafiek';
-$L['Current usage rolled up by hour, day, month and total lifetime traffic.'] = 'Huidig gebruik samengevat per uur, dag, maand en totale levensduur.';
 $L['Loading traffic data...'] = 'Verkeersgegevens laden...';
 $L['Requesting the current vnStat view for this interface.'] = 'De huidige vnStat-weergave voor deze interface wordt opgehaald.';
 $L['Retry'] = 'Opnieuw proberen';

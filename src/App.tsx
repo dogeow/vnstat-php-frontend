@@ -1,4 +1,12 @@
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import {
+  Fragment,
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useRef,
+  useState
+} from "react";
+import { ChevronDown, Moon, Sun } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -9,7 +17,6 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { Badge } from "./components/ui/badge";
 import { buttonVariants } from "./components/ui/button";
 import {
   Card,
@@ -103,17 +110,15 @@ function SummarySection({
   cards: SummaryCard[];
   bootstrap: Bootstrap;
 }) {
+  const [activeCardId, setActiveCardId] = useState<string | undefined>(undefined);
+  const activeCard = cards.find((card) => card.id === activeCardId);
+
+  useEffect(() => {
+    setActiveCardId(undefined);
+  }, [cards]);
+
   return (
     <Card>
-      <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-3">
-          {sectionKicker(bootstrap.labels.overview)}
-          <CardTitle>{bootstrap.labels.summaryTitle}</CardTitle>
-        </div>
-        <CardDescription className="max-w-xl text-sm leading-6">
-          {bootstrap.labels.summaryDescription}
-        </CardDescription>
-      </CardHeader>
       <CardContent>
         {cards.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
@@ -123,50 +128,55 @@ function SummarySection({
             </p>
           </div>
         ) : (
-          <Tabs defaultValue={cards[0]?.id} className="w-full">
+          <Tabs
+            value={activeCardId}
+            onValueChange={setActiveCardId}
+            className="w-full"
+          >
             <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="w-max">
+              <TabsList className="h-auto w-max gap-2 bg-transparent p-0">
                 {cards.map((card) => (
-                  <TabsTrigger key={card.id} value={card.id}>
-                    {card.label}
+                  <TabsTrigger
+                    key={card.id}
+                    value={card.id}
+                    className="h-auto min-w-[168px] flex-col items-start gap-2 rounded-[1.35rem] border border-border bg-card/90 px-4 py-4 text-left data-[state=active]:border-[var(--accent-strong)] data-[state=active]:bg-card"
+                  >
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      {card.label}
+                    </span>
+                    <span className="text-xl font-semibold tracking-tight text-card-foreground">
+                      {card.formatted.total}
+                    </span>
                   </TabsTrigger>
                 ))}
               </TabsList>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
 
-            {cards.map((card) => (
-              <TabsContent key={card.id} value={card.id}>
+            {activeCard ? (
+              <TabsContent key={activeCard.id} value={activeCard.id}>
                 <Card className="rounded-[24px] border-border/80 bg-card/95 shadow-none">
-                  <CardContent className="grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_280px_280px] md:items-end">
-                    <div className="space-y-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        {card.label}
-                      </p>
-                      <p className="text-3xl font-semibold tracking-tight">
-                        {card.formatted.total}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-3">
+                  <CardContent className="grid gap-4 p-5 md:grid-cols-2">
+                    <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         {bootstrap.labels.in}
                       </p>
-                      <p className="mt-1 font-mono text-sm font-semibold">
-                        {card.formatted.rx}
+                      <p className="mt-2 font-mono text-base font-semibold">
+                        {activeCard.formatted.rx}
                       </p>
                     </div>
-                    <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-3">
+                    <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         {bootstrap.labels.out}
                       </p>
-                      <p className="mt-1 font-mono text-sm font-semibold">
-                        {card.formatted.tx}
+                      <p className="mt-2 font-mono text-base font-semibold">
+                        {activeCard.formatted.tx}
                       </p>
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
-            ))}
+            ) : null}
           </Tabs>
         )}
       </CardContent>
@@ -176,15 +186,15 @@ function SummarySection({
 
 function ChartSection({
   payload,
-  bootstrap
+  bootstrap,
+  route,
+  navigate
 }: {
   payload: AppPayload;
   bootstrap: Bootstrap;
+  route: AppRoute;
+  navigate: (partial: Partial<AppRoute>) => void;
 }) {
-  if (!payload.chart.enabled) {
-    return null;
-  }
-
   const chartClass =
     payload.chart.size === "small" ? "h-[220px] md:h-[250px]" : "h-[280px] md:h-[360px]";
 
@@ -195,12 +205,51 @@ function ChartSection({
           {sectionKicker(bootstrap.labels.visualization)}
           <CardTitle>{payload.chart.title}</CardTitle>
         </div>
-        <CardDescription className="max-w-xl text-sm leading-6">
-          {payload.chart.description}
-        </CardDescription>
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <CardDescription className="max-w-xl text-sm leading-6 sm:text-right">
+            {payload.chart.description}
+          </CardDescription>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {bootstrap.labels.chartSize}
+            </span>
+            {bootstrap.options.graphs.map((option) => {
+              const href = navHref({
+                ...route,
+                graph: option.id as GraphKey
+              });
+              const active = route.graph === option.id;
+
+              return (
+                <a
+                  key={option.id}
+                  className={cn(
+                    buttonVariants({
+                      variant: active ? "default" : "outline",
+                      size: "sm"
+                    }),
+                    "rounded-full"
+                  )}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    navigate({ graph: option.id as GraphKey });
+                  }}
+                >
+                  {option.label}
+                </a>
+              );
+            })}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        {payload.chart.points.length === 0 ? (
+        {!payload.chart.enabled ? (
+          <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
+            <h3 className="text-lg font-semibold">{bootstrap.labels.chartHidden}</h3>
+          </div>
+        ) : payload.chart.points.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
             <h3 className="text-lg font-semibold">{bootstrap.labels.noChartDataTitle}</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -268,11 +317,23 @@ function ChartSection({
   );
 }
 
-function DetailSection({ payload }: { payload: AppPayload }) {
+function DetailSection({
+  payload,
+  bootstrap
+}: {
+  payload: AppPayload;
+  bootstrap: Bootstrap;
+}) {
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setExpandedRowId(null);
+  }, [payload.detail.kind, payload.detail.rows]);
+
   return (
     <Card>
       <CardHeader className="space-y-3">
-        {sectionKicker("Details")}
+        {sectionKicker(bootstrap.labels.details)}
         <CardTitle>{payload.detail.title}</CardTitle>
       </CardHeader>
       <CardContent>
@@ -290,22 +351,51 @@ function DetailSection({ payload }: { payload: AppPayload }) {
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead>{window.__VNSTAT_BOOTSTRAP__?.labels.period ?? "Period"}</TableHead>
-                      <TableHead className="text-right">{window.__VNSTAT_BOOTSTRAP__?.labels.in ?? "In"}</TableHead>
-                      <TableHead className="text-right">{window.__VNSTAT_BOOTSTRAP__?.labels.out ?? "Out"}</TableHead>
-                      <TableHead className="text-right">{window.__VNSTAT_BOOTSTRAP__?.labels.total ?? "Total"}</TableHead>
+                      <TableHead>{bootstrap.labels.period}</TableHead>
+                      <TableHead className="text-right">{bootstrap.labels.total}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {payload.detail.rows.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell className="font-semibold">{row.label}</TableCell>
-                        <TableCell className="text-right font-mono">{row.formatted.rx}</TableCell>
-                        <TableCell className="text-right font-mono">{row.formatted.tx}</TableCell>
-                        <TableCell className="text-right font-mono text-[var(--accent-strong)]">
-                          {row.formatted.total}
-                        </TableCell>
-                      </TableRow>
+                      <Fragment key={row.id}>
+                        <TableRow
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setExpandedRowId((current) =>
+                              current === row.id ? null : row.id
+                            );
+                          }}
+                        >
+                          <TableCell className="font-semibold">{row.label}</TableCell>
+                          <TableCell className="text-right font-mono text-[var(--accent-strong)]">
+                            {row.formatted.total}
+                          </TableCell>
+                        </TableRow>
+                        {expandedRowId === row.id ? (
+                          <TableRow className="bg-secondary/60 hover:bg-secondary/60">
+                            <TableCell colSpan={2}>
+                              <div className="grid gap-3 py-2 md:grid-cols-2">
+                                <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-3">
+                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                                    {bootstrap.labels.in}
+                                  </p>
+                                  <p className="mt-1 font-mono text-sm font-semibold">
+                                    {row.formatted.rx}
+                                  </p>
+                                </div>
+                                <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-3">
+                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                                    {bootstrap.labels.out}
+                                  </p>
+                                  <p className="mt-1 font-mono text-sm font-semibold">
+                                    {row.formatted.tx}
+                                  </p>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ) : null}
+                      </Fragment>
                     ))}
                   </TableBody>
                 </Table>
@@ -316,29 +406,36 @@ function DetailSection({ payload }: { payload: AppPayload }) {
               {payload.detail.rows.map((row) => (
                 <Card key={`${row.id}-mobile`} className="rounded-[22px] border-border/80 bg-card/95 shadow-none">
                   <CardContent className="p-4">
-                    <h3 className="text-base font-semibold">{row.label}</h3>
-                    <dl className="mt-4 grid gap-2">
-                      <div className="flex items-center justify-between rounded-2xl bg-secondary px-4 py-3">
-                        <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                          {window.__VNSTAT_BOOTSTRAP__?.labels.in ?? "In"}
-                        </dt>
-                        <dd className="font-mono text-sm">{row.formatted.rx}</dd>
-                      </div>
-                      <div className="flex items-center justify-between rounded-2xl bg-secondary px-4 py-3">
-                        <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                          {window.__VNSTAT_BOOTSTRAP__?.labels.out ?? "Out"}
-                        </dt>
-                        <dd className="font-mono text-sm">{row.formatted.tx}</dd>
-                      </div>
-                      <div className="flex items-center justify-between rounded-2xl bg-secondary px-4 py-3">
-                        <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                          {window.__VNSTAT_BOOTSTRAP__?.labels.total ?? "Total"}
-                        </dt>
-                        <dd className="font-mono text-sm font-semibold text-[var(--accent-strong)]">
-                          {row.formatted.total}
-                        </dd>
-                      </div>
-                    </dl>
+                    <button
+                      className="flex w-full items-center justify-between gap-4 text-left"
+                      type="button"
+                      onClick={() => {
+                        setExpandedRowId((current) =>
+                          current === row.id ? null : row.id
+                        );
+                      }}
+                    >
+                      <span className="text-base font-semibold">{row.label}</span>
+                      <span className="font-mono text-sm font-semibold text-[var(--accent-strong)]">
+                        {row.formatted.total}
+                      </span>
+                    </button>
+                    {expandedRowId === row.id ? (
+                      <dl className="mt-4 grid gap-2">
+                        <div className="flex items-center justify-between rounded-2xl bg-[var(--rx-soft)] px-4 py-3">
+                          <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            {bootstrap.labels.in}
+                          </dt>
+                          <dd className="font-mono text-sm">{row.formatted.rx}</dd>
+                        </div>
+                        <div className="flex items-center justify-between rounded-2xl bg-[var(--tx-soft)] px-4 py-3">
+                          <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            {bootstrap.labels.out}
+                          </dt>
+                          <dd className="font-mono text-sm">{row.formatted.tx}</dd>
+                        </div>
+                      </dl>
+                    ) : null}
                   </CardContent>
                 </Card>
               ))}
@@ -359,6 +456,7 @@ export default function App({ bootstrap }: AppProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const interfaceMenuRef = useRef<HTMLDetailsElement | null>(null);
 
   useEffect(() => {
     syncTheme(route.style);
@@ -425,170 +523,140 @@ export default function App({ bootstrap }: AppProps) {
     setNextRoute(nextRoute);
   };
 
+  const currentInterface =
+    bootstrap.options.ifaces.find((option) => option.id === route.iface) ??
+    bootstrap.options.ifaces[0];
+  const nextStyle = route.style === "dark" ? "light" : "dark";
+  const nextStyleOption =
+    bootstrap.options.styles.find((option) => option.id === nextStyle) ??
+    bootstrap.options.styles[0];
+  const nextStyleHref = navHref({ ...route, style: nextStyleOption?.id ?? nextStyle });
+
   return (
     <div className="relative z-10 min-h-screen">
       <header className="sticky top-0 z-40 border-b border-border bg-[color:var(--surface)]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <Badge variant="secondary" className="shrink-0 rounded-full px-3 py-1">
-            {bootstrap.labels.settings}
-          </Badge>
-          <ScrollArea className="w-full">
-            <div className="flex items-center gap-6 whitespace-nowrap pr-6">
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {bootstrap.labels.chartSize}
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <details ref={interfaceMenuRef} className="group relative shrink-0">
+            <summary
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "flex h-auto min-w-[180px] list-none items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left shadow-none [&::-webkit-details-marker]:hidden"
+              )}
+            >
+              <span className="flex flex-col items-start gap-1">
+                <span className="flex items-center gap-2">
+                  <span>{currentInterface?.label ?? route.iface}</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    {currentInterface?.meta ?? route.iface}
+                  </span>
                 </span>
-                <div className="flex items-center gap-2">
-                  {bootstrap.options.graphs.map((option) => {
-                    const href = navHref({
-                      ...route,
-                      graph: option.id as GraphKey
-                    });
-                    const active = route.graph === option.id;
+              </span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="absolute left-0 top-[calc(100%+0.75rem)] z-50 w-72 rounded-[1.35rem] border border-border bg-card p-2 shadow-[var(--shadow)]">
+              <div className="grid gap-1">
+                {bootstrap.options.ifaces.map((option) => {
+                  const href = navHref({ ...route, iface: option.id });
+                  const active = route.iface === option.id;
 
-                    return (
-                      <a
-                        key={option.id}
-                        className={cn(
-                          buttonVariants({
-                            variant: active ? "default" : "outline",
-                            size: "sm"
-                          }),
-                          "rounded-full"
-                        )}
-                        href={href}
-                        aria-current={active ? "page" : undefined}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          navigate({ graph: option.id as GraphKey });
-                        }}
-                      >
-                        {option.label}
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="h-6 w-px bg-border" />
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  {bootstrap.labels.themes}
-                </span>
-                <div className="flex items-center gap-2">
-                  {bootstrap.options.styles.map((option) => {
-                    const href = navHref({ ...route, style: option.id });
-                    const active = route.style === option.id;
-
-                    return (
-                      <a
-                        key={option.id}
-                        className={cn(
-                          buttonVariants({
-                            variant: active ? "secondary" : "ghost",
-                            size: "sm"
-                          }),
-                          "rounded-full"
-                        )}
-                        href={href}
-                        aria-current={active ? "page" : undefined}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          navigate({ style: option.id });
-                        }}
-                      >
-                        {option.label}
-                      </a>
-                    );
-                  })}
-                </div>
+                  return (
+                    <a
+                      key={option.id}
+                      className={cn(
+                        buttonVariants({
+                          variant: active ? "secondary" : "ghost",
+                          size: "sm"
+                        }),
+                        "h-auto justify-between rounded-xl px-3 py-3 text-left"
+                      )}
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        interfaceMenuRef.current?.removeAttribute("open");
+                        navigate({ iface: option.id });
+                      }}
+                    >
+                      <span className="flex flex-col items-start gap-1">
+                        <span>{option.label}</span>
+                        <span className="font-mono text-[11px] text-muted-foreground">
+                          {option.meta ?? option.id}
+                        </span>
+                      </span>
+                    </a>
+                  );
+                })}
               </div>
             </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          </details>
+
+          <a
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "icon" }),
+              "shrink-0 rounded-full"
+            )}
+            href={nextStyleHref}
+            aria-label={`${bootstrap.labels.themeWord}: ${nextStyleOption?.label ?? nextStyle}`}
+            title={`${bootstrap.labels.themeWord}: ${nextStyleOption?.label ?? nextStyle}`}
+            onClick={(event) => {
+              event.preventDefault();
+              navigate({ style: nextStyleOption?.id ?? nextStyle });
+            }}
+          >
+            {route.style === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </a>
         </div>
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="space-y-4">
-          <Card className="overflow-hidden">
-            <CardContent className="space-y-5 p-4 md:p-5">
+          <section className="space-y-3">
+            <div className="flex flex-col gap-4 px-1 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-3">
-                {sectionKicker(bootstrap.labels.interfaces)}
-                <ScrollArea className="w-full whitespace-nowrap">
-                  <div className="flex items-center gap-2 pr-4">
-                    {bootstrap.options.ifaces.map((option) => {
-                      const href = navHref({ ...route, iface: option.id });
-                      const active = route.iface === option.id;
+                {sectionKicker(bootstrap.labels.overview)}
+                <h1 className="text-2xl font-semibold tracking-tight">
+                  {bootstrap.labels.summaryTitle}
+                </h1>
+              </div>
+            </div>
+            <Tabs value={route.page} className="w-full">
+              <ScrollArea className="w-full whitespace-nowrap">
+                <TabsList className="h-auto w-max gap-2 bg-transparent p-0">
+                  {bootstrap.options.pages.map((option) => {
+                    const href = navHref({
+                      ...route,
+                      page: option.id as AppRoute["page"]
+                    });
 
-                      return (
+                    return (
+                      <TabsTrigger
+                        key={option.id}
+                        value={option.id}
+                        className="min-w-[108px] rounded-full border border-border bg-card/90 px-5 py-3 text-sm data-[state=active]:border-[var(--accent-strong)] data-[state=active]:bg-card"
+                        asChild
+                      >
                         <a
-                          key={option.id}
-                          className={cn(
-                            buttonVariants({
-                              variant: active ? "default" : "outline",
-                              size: "sm"
-                            }),
-                            "h-auto min-w-fit rounded-full px-4 py-2 shadow-none"
-                          )}
                           href={href}
-                          aria-current={active ? "page" : undefined}
+                          aria-current={route.page === option.id ? "page" : undefined}
                           onClick={(event) => {
                             event.preventDefault();
-                            navigate({ iface: option.id });
+                            navigate({ page: option.id as AppRoute["page"] });
                           }}
                         >
-                          <span className="flex items-center gap-2">
-                            <span>{option.label}</span>
-                            <span className="font-mono text-[11px] text-muted-foreground">
-                              {option.meta ?? option.id}
-                            </span>
-                          </span>
+                          {option.label}
                         </a>
-                      );
-                    })}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
-              </div>
-
-              <div className="space-y-3">
-                {sectionKicker(bootstrap.labels.views)}
-                <Tabs value={route.page} className="w-full">
-                  <ScrollArea className="w-full whitespace-nowrap">
-                    <TabsList className="h-auto w-max gap-2 rounded-[1.35rem] p-1.5">
-                      {bootstrap.options.pages.map((option) => {
-                        const href = navHref({
-                          ...route,
-                          page: option.id as AppRoute["page"]
-                        });
-
-                        return (
-                          <TabsTrigger
-                            key={option.id}
-                            value={option.id}
-                            className="min-w-[108px] rounded-[1rem] px-5 py-3 text-sm"
-                            asChild
-                          >
-                            <a
-                              href={href}
-                              aria-current={route.page === option.id ? "page" : undefined}
-                              onClick={(event) => {
-                                event.preventDefault();
-                                navigate({ page: option.id as AppRoute["page"] });
-                              }}
-                            >
-                              {option.label}
-                            </a>
-                          </TabsTrigger>
-                        );
-                      })}
-                    </TabsList>
-                    <ScrollBar orientation="horizontal" />
-                  </ScrollArea>
-                </Tabs>
-              </div>
-            </CardContent>
-          </Card>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </Tabs>
+          </section>
 
           <main className="space-y-4">
           {loading && !payload ? (
@@ -627,8 +695,13 @@ export default function App({ bootstrap }: AppProps) {
           {deferredPayload ? (
             <>
               <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
-              <ChartSection payload={deferredPayload} bootstrap={bootstrap} />
-              <DetailSection payload={deferredPayload} />
+              <ChartSection
+                payload={deferredPayload}
+                bootstrap={bootstrap}
+                route={route}
+                navigate={navigate}
+              />
+              <DetailSection payload={deferredPayload} bootstrap={bootstrap} />
             </>
           ) : null}
 

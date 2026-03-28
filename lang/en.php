@@ -39,7 +39,6 @@ $L['Overview'] = 'Overview';
 $L['Details'] = 'Details';
 $L['Visualization'] = 'Visualization';
 $L['Traffic chart'] = 'Traffic chart';
-$L['Current usage rolled up by hour, day, month and total lifetime traffic.'] = 'Current usage rolled up by hour, day, month and total lifetime traffic.';
 $L['Loading traffic data...'] = 'Loading traffic data...';
 $L['Requesting the current vnStat view for this interface.'] = 'Requesting the current vnStat view for this interface.';
 $L['Retry'] = 'Retry';

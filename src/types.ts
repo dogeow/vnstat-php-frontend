@@ -25,7 +25,6 @@ export interface Bootstrap {
   };
   endpoints: {
     data: string;
-    legacyGraph: string;
   };
   labels: {
     interfaces: string;
@@ -39,7 +38,6 @@ export interface Bootstrap {
     details: string;
     visualization: string;
     trafficChart: string;
-    summaryDescription: string;
     loading: string;
     loadingMessage: string;
     retry: string;
