@@ -90,22 +90,108 @@
     }
 
 
+    function read_vnstat_dump($iface)
+    {
+        global $data_dir;
+
+        $dump_file = "$data_dir/vnstat_dump_$iface";
+
+        if (file_exists($dump_file)) {
+            return file($dump_file);
+        }
+
+        return array();
+    }
+
+
+    function vnstat_icu_pattern($pattern)
+    {
+        return strtr($pattern, array(
+            '%a' => 'EEE',
+            '%A' => 'EEEE',
+            '%b' => 'LLL',
+            '%B' => 'LLLL',
+            '%d' => 'dd',
+            '%e' => 'd',
+            '%m' => 'MM',
+            '%Y' => 'yyyy',
+            '%H' => 'HH',
+            '%k' => 'H',
+            '%I' => 'hh',
+            '%l' => 'h',
+            '%M' => 'mm',
+            '%p' => 'a'
+        ));
+    }
+
+
+    function vnstat_php_date_pattern($pattern)
+    {
+        return strtr($pattern, array(
+            '%a' => 'D',
+            '%A' => 'l',
+            '%b' => 'M',
+            '%B' => 'F',
+            '%d' => 'd',
+            '%e' => 'j',
+            '%m' => 'm',
+            '%Y' => 'Y',
+            '%H' => 'H',
+            '%k' => 'G',
+            '%I' => 'h',
+            '%l' => 'g',
+            '%M' => 'i',
+            '%p' => 'A'
+        ));
+    }
+
+
+    function vnstat_format_time($pattern, $timestamp)
+    {
+        global $locale;
+
+        static $formatters = array();
+        $timezone = date_default_timezone_get();
+        $cache_key = $locale.'|'.$timezone.'|'.$pattern;
+
+        if (class_exists('IntlDateFormatter'))
+        {
+            if (!isset($formatters[$cache_key]))
+            {
+                $formatters[$cache_key] = new IntlDateFormatter(
+                    $locale,
+                    IntlDateFormatter::NONE,
+                    IntlDateFormatter::NONE,
+                    $timezone,
+                    null,
+                    vnstat_icu_pattern($pattern)
+                );
+            }
+
+            if ($formatters[$cache_key] instanceof IntlDateFormatter)
+            {
+                $formatted = $formatters[$cache_key]->format($timestamp);
+                if ($formatted !== false)
+                {
+                    return $formatted;
+                }
+            }
+        }
+
+        return date(vnstat_php_date_pattern($pattern), $timestamp);
+    }
+
+
     function get_vnstat_data($use_label=true)
     {
         global $iface, $vnstat_bin, $data_dir;
         global $hour,$day,$month,$top,$summary;
 
 	$vnstat_data = array();
-        if (!isset($vnstat_bin) || $vnstat_bin == '')
+        if (isset($vnstat_bin) && $vnstat_bin != '' && is_executable($vnstat_bin))
         {
-	    if (file_exists("$data_dir/vnstat_dump_$iface"))
-	    {
-        	$vnstat_data = file("$data_dir/vnstat_dump_$iface");
-	    }
-        }
-        else
-        {
-            $fd = popen("$vnstat_bin --dumpdb -i $iface", "r");
+            $command = escapeshellarg($vnstat_bin).' --dumpdb -i '.escapeshellarg($iface).' 2>/dev/null';
+            $fd = popen($command, "r");
             if (is_resource($fd))
             {
             	$buffer = '';
@@ -114,6 +200,20 @@
             	}
             	$vnstat_data = explode("\n", $buffer);
             	pclose($fd);
+            }
+        }
+
+        if (count($vnstat_data) === 0)
+        {
+	    $vnstat_data = read_vnstat_dump($iface);
+        }
+
+        if (isset($vnstat_data[0]) && strpos($vnstat_data[0], 'Error') !== false)
+        {
+            $dump_data = read_vnstat_dump($iface);
+            if (count($dump_data) > 0)
+            {
+                $vnstat_data = $dump_data;
             }
         }
 
@@ -141,8 +241,8 @@
                 $day[$d[1]]['act']   = $d[7];
                 if ($d[2] != 0 && $use_label)
                 {
-                    $day[$d[1]]['label'] = strftime(T('datefmt_days'),$d[2]);
-                    $day[$d[1]]['img_label'] = strftime(T('datefmt_days_img'), $d[2]);
+                    $day[$d[1]]['label'] = vnstat_format_time(T('datefmt_days'), $d[2]);
+                    $day[$d[1]]['img_label'] = vnstat_format_time(T('datefmt_days_img'), $d[2]);
                 }
                 elseif($use_label)
                 {
@@ -158,8 +258,8 @@
                 $month[$d[1]]['act']  = $d[7];
                 if ($d[2] != 0 && $use_label)
                 {
-                    $month[$d[1]]['label'] = strftime(T('datefmt_months'), $d[2]);
-                    $month[$d[1]]['img_label'] = strftime(T('datefmt_months_img'), $d[2]);
+                    $month[$d[1]]['label'] = vnstat_format_time(T('datefmt_months'), $d[2]);
+                    $month[$d[1]]['img_label'] = vnstat_format_time(T('datefmt_months_img'), $d[2]);
                 }
                 else if ($use_label)
                 {
@@ -177,8 +277,8 @@
                 {
                     $st = $d[2] - ($d[2] % 3600);
                     $et = $st + 3600;
-                    $hour[$d[1]]['label'] = strftime(T('datefmt_hours'), $st).' - '.strftime(T('datefmt_hours'), $et);
-                    $hour[$d[1]]['img_label'] = strftime(T('datefmt_hours_img'), $d[2]);
+                    $hour[$d[1]]['label'] = vnstat_format_time(T('datefmt_hours'), $st).' - '.vnstat_format_time(T('datefmt_hours'), $et);
+                    $hour[$d[1]]['img_label'] = vnstat_format_time(T('datefmt_hours_img'), $d[2]);
                 }
                 else if ($use_label)
                 {
@@ -194,7 +294,7 @@
                 $top[$d[1]]['act']  = $d[7];
                 if($use_label)
                 {
-                    $top[$d[1]]['label'] = strftime(T('datefmt_top'), $d[2]);
+                    $top[$d[1]]['label'] = vnstat_format_time(T('datefmt_top'), $d[2]);
                     $top[$d[1]]['img_label'] = '';
                 }
             }
