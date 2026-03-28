@@ -60,10 +60,6 @@ function navHref(route: AppRoute) {
   return buildSearch(route);
 }
 
-function optionLabel(options: NavOption[], id: string) {
-  return options.find((option) => option.id === id)?.label ?? id;
-}
-
 function syncTheme(style: string) {
   const link = document.getElementById("theme-stylesheet") as HTMLLinkElement | null;
   if (link) {
@@ -353,15 +349,6 @@ export default function App({ bootstrap }: AppProps) {
     setNextRoute(nextRoute);
   };
 
-  const viewLabel = optionLabel(bootstrap.options.pages, route.page);
-  const graphLabel =
-    route.graph === "none"
-      ? bootstrap.labels.chartHidden
-      : route.graph === "small"
-        ? bootstrap.labels.compactChart
-        : bootstrap.labels.fullChart;
-  const themeLabel = optionLabel(bootstrap.options.styles, route.style);
-
   return (
     <div className="app-shell page-shell">
       <aside className="sidebar">
@@ -419,72 +406,66 @@ export default function App({ bootstrap }: AppProps) {
         </section>
 
         <section className="nav-card">
-          <p className="nav-card-title">{bootstrap.labels.themes}</p>
-          <div className="theme-grid">
-            {bootstrap.options.styles.map((option) => {
-              const href = navHref({ ...route, style: option.id });
-              const active = route.style === option.id;
+          <p className="nav-card-title">{bootstrap.labels.settings}</p>
+          <div className="settings-stack">
+            <section className="settings-group">
+              <p className="settings-label">{bootstrap.labels.chartSize}</p>
+              <div className="segmented-control">
+                {bootstrap.options.graphs.map((option) => {
+                  const href = navHref({
+                    ...route,
+                    graph: option.id as GraphKey
+                  });
+                  const active = route.graph === option.id;
 
-              return (
-                <a
-                  key={option.id}
-                  className={`theme-link${active ? " active" : ""}`}
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    navigate({ style: option.id });
-                  }}
-                >
-                  <span>{option.label}</span>
-                  <span className="theme-chip">{bootstrap.labels.themeWord}</span>
-                </a>
-              );
-            })}
+                  return (
+                    <a
+                      key={option.id}
+                      className={`segment${active ? " active" : ""}`}
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigate({ graph: option.id as GraphKey });
+                      }}
+                    >
+                      {option.label}
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="settings-group">
+              <p className="settings-label">{bootstrap.labels.themes}</p>
+              <div className="theme-grid">
+                {bootstrap.options.styles.map((option) => {
+                  const href = navHref({ ...route, style: option.id });
+                  const active = route.style === option.id;
+
+                  return (
+                    <a
+                      key={option.id}
+                      className={`theme-link${active ? " active" : ""}`}
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigate({ style: option.id });
+                      }}
+                    >
+                      <span>{option.label}</span>
+                      <span className="theme-chip">{bootstrap.labels.themeWord}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </section>
           </div>
         </section>
       </aside>
 
       <main className="content">
-        <header className="hero panel">
-          <div className="hero-copy">
-            <div className="hero-meta">
-              <span className="meta-pill">{viewLabel}</span>
-              <span className="meta-pill">{graphLabel}</span>
-              <span className="meta-pill">{`${bootstrap.labels.themeWord}: ${themeLabel}`}</span>
-              <span className="meta-pill">{currentIfaceLabel(bootstrap, route.iface)}</span>
-            </div>
-          </div>
-
-          <div className="graph-switcher">
-            <p className="switcher-label">{bootstrap.labels.chartSize}</p>
-            <div className="segmented-control">
-              {bootstrap.options.graphs.map((option) => {
-                const href = navHref({
-                  ...route,
-                  graph: option.id as GraphKey
-                });
-                const active = route.graph === option.id;
-
-                return (
-                  <a
-                    key={option.id}
-                    className={`segment${active ? " active" : ""}`}
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      navigate({ graph: option.id as GraphKey });
-                    }}
-                  >
-                    {option.label}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        </header>
-
         {loading && !payload ? (
           <section className="panel status-panel">
             <div className="empty-state">

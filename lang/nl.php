@@ -30,6 +30,7 @@ $L['bytes in'] = 'bytes in';
 $L['bytes out'] = 'bytes uit';
 $L['Interfaces'] = 'Interfaces';
 $L['Views'] = 'Weergaven';
+$L['Settings'] = 'Instellingen';
 $L['Themes'] = 'Thema\'s';
 $L['Chart size'] = 'Grafiekgrootte';
 $L['Overview'] = 'Overzicht';

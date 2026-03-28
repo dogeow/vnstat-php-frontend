@@ -30,6 +30,7 @@ export interface Bootstrap {
   labels: {
     interfaces: string;
     views: string;
+    settings: string;
     themes: string;
     chartSize: string;
     overview: string;

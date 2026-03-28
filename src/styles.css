@@ -12,6 +12,25 @@
   gap: 12px;
 }
 
+.settings-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.settings-group {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .theme-link {
   display: flex;
   align-items: center;
@@ -160,6 +179,15 @@
 }
 
 @media (max-width: 760px) {
+  .settings-stack {
+    gap: 12px;
+  }
+
+  .settings-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+
   .theme-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;

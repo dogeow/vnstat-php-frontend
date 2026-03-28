@@ -128,6 +128,7 @@
             'labels' => array(
                 'interfaces' => T('Interfaces'),
                 'views' => T('Views'),
+                'settings' => T('Settings'),
                 'themes' => T('Themes'),
                 'chartSize' => T('Chart size'),
                 'overview' => T('Overview'),

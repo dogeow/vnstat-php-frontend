@@ -30,6 +30,7 @@ $L['bytes in'] = 'bytes in';
 $L['bytes out'] = 'bytes out';
 $L['Interfaces'] = 'Interfaces';
 $L['Views'] = 'Views';
+$L['Settings'] = 'Settings';
 $L['Themes'] = 'Themes';
 $L['Chart size'] = 'Chart size';
 $L['Overview'] = 'Overview';
