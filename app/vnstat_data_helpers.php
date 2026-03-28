@@ -52,6 +52,45 @@
         return $bytes / 1024;
     }
 
+    function vnstat_data_json_timestamp_from_parts(array $entry, $type)
+    {
+        if (!isset($entry['date']) || !is_array($entry['date'])) {
+            return 0;
+        }
+
+        $date = $entry['date'];
+        $year = isset($date['year']) ? (int) $date['year'] : 0;
+        $month = isset($date['month']) ? (int) $date['month'] : 1;
+        $day = isset($date['day']) ? (int) $date['day'] : 1;
+
+        if ($year <= 0 || $month <= 0 || $day <= 0 || !checkdate($month, $day, $year)) {
+            return 0;
+        }
+
+        $hour = 0;
+        $minute = 0;
+
+        if ($type === 'hour') {
+            if (isset($entry['time']) && is_array($entry['time'])) {
+                $hour = isset($entry['time']['hour']) ? (int) $entry['time']['hour'] : 0;
+                $minute = isset($entry['time']['minute']) ? (int) $entry['time']['minute'] : 0;
+            } elseif (isset($entry['hour'])) {
+                $hour = (int) $entry['hour'];
+            }
+        }
+
+        return mktime($hour, $minute, 0, $month, $day, $year);
+    }
+
+    function vnstat_data_json_timestamp($entry, $type)
+    {
+        if (isset($entry['timestamp']) && (int) $entry['timestamp'] > 0) {
+            return (int) $entry['timestamp'];
+        }
+
+        return vnstat_data_json_timestamp_from_parts($entry, $type);
+    }
+
     function vnstat_data_summary_totals_from_bytes($rxBytes, $txBytes)
     {
         $rxKbytes = (int) floor(vnstat_data_bytes_to_kbytes($rxBytes));
@@ -212,7 +251,7 @@
         $bucket = [];
 
         foreach (vnstat_data_normalize_json_list($entries) as $index => $entry) {
-            $timestamp = isset($entry['timestamp']) ? (int) $entry['timestamp'] : 0;
+            $timestamp = vnstat_data_json_timestamp($entry, $type);
             $row = [
                 'time' => $timestamp,
                 'rx' => isset($entry['rx']) ? vnstat_data_bytes_to_kbytes($entry['rx']) : 0,
