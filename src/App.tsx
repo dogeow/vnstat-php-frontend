@@ -34,7 +34,7 @@ import {
   TableHeader,
   TableRow
 } from "./components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { buildSearch, fetchAppPayload, parseRoute, type AppRoute } from "./lib/api";
 import { formatCompactKbytes, tooltipRows } from "./lib/format";
 import { cn } from "./lib/utils";
@@ -102,16 +102,16 @@ function SummarySection({
   cards: SummaryCard[];
   bootstrap: Bootstrap;
 }) {
-  const [activeCardId, setActiveCardId] = useState<string | undefined>(undefined);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const activeCard = cards.find((card) => card.id === activeCardId);
 
   useEffect(() => {
-    setActiveCardId(undefined);
+    setActiveCardId(null);
   }, [cards]);
 
   return (
     <Card>
-      <CardContent>
+      <CardContent className="space-y-4 p-5 md:p-6">
         {cards.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
             <h3 className="text-lg font-semibold">{bootstrap.labels.noTrafficDataTitle}</h3>
@@ -120,18 +120,23 @@ function SummarySection({
             </p>
           </div>
         ) : (
-          <Tabs
-            value={activeCardId}
-            onValueChange={setActiveCardId}
-            className="w-full"
-          >
-            <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="h-auto w-max gap-2 bg-transparent p-0">
-                {cards.map((card) => (
-                  <TabsTrigger
+          <>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {cards.map((card) => {
+                const active = activeCardId === card.id;
+
+                return (
+                  <button
                     key={card.id}
-                    value={card.id}
-                    className="h-auto min-w-[168px] flex-col items-start gap-2 rounded-[1.35rem] border border-border bg-card/90 px-4 py-4 text-left data-[state=active]:border-[var(--accent-strong)] data-[state=active]:bg-card"
+                    type="button"
+                    aria-pressed={active}
+                    className={cn(
+                      "flex min-h-[108px] w-full flex-col items-start gap-2 rounded-[1.35rem] border border-border bg-card/90 px-4 py-4 text-left transition-colors",
+                      active && "border-[var(--accent-strong)] bg-card"
+                    )}
+                    onClick={() => {
+                      setActiveCardId((current) => (current === card.id ? null : card.id));
+                    }}
                   >
                     <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                       {card.label}
@@ -139,37 +144,34 @@ function SummarySection({
                     <span className="text-xl font-semibold tracking-tight text-card-foreground">
                       {card.formatted.total}
                     </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+                  </button>
+                );
+              })}
+            </div>
 
             {activeCard ? (
-              <TabsContent key={activeCard.id} value={activeCard.id}>
-                <Card className="rounded-[24px] border-border/80 bg-card/95 shadow-none">
-                  <CardContent className="grid gap-4 p-5 md:grid-cols-2">
-                    <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        {bootstrap.labels.in}
-                      </p>
-                      <p className="mt-2 font-mono text-base font-semibold">
-                        {activeCard.formatted.rx}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        {bootstrap.labels.out}
-                      </p>
-                      <p className="mt-2 font-mono text-base font-semibold">
-                        {activeCard.formatted.tx}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              <Card className="rounded-[24px] border-border/80 bg-card/95 shadow-none">
+                <CardContent className="grid gap-4 p-5 md:grid-cols-2">
+                  <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      {bootstrap.labels.in}
+                    </p>
+                    <p className="mt-2 font-mono text-base font-semibold">
+                      {activeCard.formatted.rx}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      {bootstrap.labels.out}
+                    </p>
+                    <p className="mt-2 font-mono text-base font-semibold">
+                      {activeCard.formatted.tx}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             ) : null}
-          </Tabs>
+          </>
         )}
       </CardContent>
     </Card>
