@@ -95,14 +95,6 @@ function syncTheme(style: string) {
   }
 }
 
-function sectionKicker(label: string) {
-  return (
-    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      {label}
-    </p>
-  );
-}
-
 function SummarySection({
   cards,
   bootstrap
@@ -201,10 +193,7 @@ function ChartSection({
   return (
     <Card>
       <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-3">
-          {sectionKicker(bootstrap.labels.visualization)}
-          <CardTitle>{payload.chart.title}</CardTitle>
-        </div>
+        <CardTitle>{payload.chart.title}</CardTitle>
         <div className="flex flex-col items-start gap-3 sm:items-end">
           <CardDescription className="max-w-xl text-sm leading-6 sm:text-right">
             {payload.chart.description}
@@ -332,8 +321,7 @@ function DetailSection({
 
   return (
     <Card>
-      <CardHeader className="space-y-3">
-        {sectionKicker(bootstrap.labels.details)}
+      <CardHeader>
         <CardTitle>{payload.detail.title}</CardTitle>
       </CardHeader>
       <CardContent>
@@ -616,12 +604,9 @@ export default function App({ bootstrap }: AppProps) {
         <div className="space-y-4">
           <section className="space-y-3">
             <div className="flex flex-col gap-4 px-1 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-3">
-                {sectionKicker(bootstrap.labels.overview)}
-                <h1 className="text-2xl font-semibold tracking-tight">
-                  {bootstrap.labels.summaryTitle}
-                </h1>
-              </div>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {bootstrap.labels.summaryTitle}
+              </h1>
             </div>
             {deferredPayload ? (
               <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
