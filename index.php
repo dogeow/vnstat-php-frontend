@@ -388,7 +388,6 @@
 
     $current_iface_title = iface_label($iface);
     $page_heading = active_view_title();
-    $page_description = active_view_description();
     $graph_source = graph_source_url();
     $document_title = $page_heading.' - '.T('Traffic data for').' '.$current_iface_title.' ('.$iface.')';
 
@@ -410,9 +409,6 @@
     <main class="content">
       <header class="hero panel">
         <div class="hero-copy">
-          <p class="eyebrow">Responsive frontend</p>
-          <h2><?php echo h(T('Traffic data for').' '.$current_iface_title.' ('.$iface.')'); ?></h2>
-          <p class="hero-description"><?php echo h($page_description); ?></p>
           <div class="hero-meta">
             <span class="meta-pill"><?php echo h(active_view_title()); ?></span>
             <span class="meta-pill"><?php echo h(graph_mode_label()); ?></span>
