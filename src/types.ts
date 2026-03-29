@@ -20,24 +20,12 @@ export interface Bootstrap {
   options: {
     ifaces: NavOption[];
     pages: NavOption[];
-    graphs: NavOption[];
     styles: NavOption[];
   };
   endpoints: {
     data: string;
   };
   labels: {
-    interfaces: string;
-    views: string;
-    settings: string;
-    themes: string;
-    chartSize: string;
-    showSettings: string;
-    hideSettings: string;
-    overview: string;
-    details: string;
-    visualization: string;
-    trafficChart: string;
     loading: string;
     loadingMessage: string;
     retry: string;
@@ -45,15 +33,11 @@ export interface Bootstrap {
     footer: string;
     period: string;
     themeWord: string;
-    summaryView: string;
-    compactChart: string;
-    fullChart: string;
     chartHidden: string;
     noTrafficDataTitle: string;
     noTrafficDataMessage: string;
     noChartDataTitle: string;
     noChartDataMessage: string;
-    topDaysChartDescription: string;
     summaryTitle: string;
     in: string;
     out: string;

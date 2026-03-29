@@ -1,4 +1,6 @@
 <?php
+    require_once __DIR__.'/app_helpers.php';
+
     function vnstat_request_page_title_map()
     {
         return [
@@ -16,7 +18,7 @@
 
     function vnstat_request_validate(array $query, array $appConfig)
     {
-        $pageList = isset($appConfig['pageList']) ? $appConfig['pageList'] : ['h', 'd', 'm', 's'];
+        $pageList = app_page_ids($appConfig);
         $graphList = isset($appConfig['graphList']) ? $appConfig['graphList'] : ['small'];
         $styleList = isset($appConfig['styleList']) ? $appConfig['styleList'] : ['light', 'dark'];
         $ifaceList = isset($appConfig['ifaceList']) ? $appConfig['ifaceList'] : [];

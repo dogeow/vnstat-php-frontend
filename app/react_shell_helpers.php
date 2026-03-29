@@ -73,17 +73,6 @@
 
     function react_shell_build_bootstrap_payload(array $request, array $appConfig, array $pageTitle)
     {
-        $graphLabelMap = [
-            'large' => 'Large',
-            'small' => 'Small',
-            'none' => 'Hide',
-        ];
-        $pageOrder = [
-            'h' => 0,
-            'd' => 1,
-            'm' => 2,
-            's' => 3,
-        ];
         $activeViewTitle = app_active_view_title($request['page'], $pageTitle);
         $documentTitle = app_document_title($request['iface'], $request['page'], $pageTitle, $appConfig);
 
@@ -95,24 +84,12 @@
             'options' => [
                 'ifaces' => [],
                 'pages' => [],
-                'graphs' => [],
                 'styles' => react_shell_build_style_options($appConfig),
             ],
             'endpoints' => [
                 'data' => 'api/traffic.php',
             ],
             'labels' => [
-                'interfaces' => __('Interfaces'),
-                'views' => __('Views'),
-                'settings' => __('Settings'),
-                'themes' => __('Themes'),
-                'chartSize' => __('Chart size'),
-                'showSettings' => __('Show settings'),
-                'hideSettings' => __('Hide settings'),
-                'overview' => __('Overview'),
-                'details' => __('Details'),
-                'visualization' => __('Visualization'),
-                'trafficChart' => __('Traffic chart'),
                 'summaryTitle' => __('Summary'),
                 'loading' => __('Loading traffic data...'),
                 'loadingMessage' => __('Requesting the current vnStat view for this interface.'),
@@ -121,15 +98,11 @@
                 'footer' => __('vnStat React frontend powered by the original PHP data layer.'),
                 'period' => __('Period'),
                 'themeWord' => __('Theme'),
-                'summaryView' => __('Summary view'),
-                'compactChart' => __('Compact chart'),
-                'fullChart' => __('Full chart'),
                 'chartHidden' => __('Chart hidden'),
                 'noTrafficDataTitle' => __('No traffic data yet'),
                 'noTrafficDataMessage' => __('vnStat returned no current counters for this interface.'),
                 'noChartDataTitle' => __('No chart data available'),
                 'noChartDataMessage' => __('vnStat has not returned enough samples to draw this time range yet.'),
-                'topDaysChartDescription' => __('Peak traffic days rendered as an interactive chart for quick comparison.'),
                 'in' => __('In'),
                 'out' => __('Out'),
                 'total' => __('Total'),
@@ -148,24 +121,10 @@
             ];
         }
 
-        foreach (isset($appConfig['pageList']) ? $appConfig['pageList'] : [] as $pageId) {
+        foreach (app_page_ids($appConfig) as $pageId) {
             $payload['options']['pages'][] = [
                 'id' => $pageId,
                 'label' => isset($pageTitle[$pageId]) ? ucfirst($pageTitle[$pageId]) : $pageId,
-            ];
-        }
-
-        usort($payload['options']['pages'], function ($left, $right) use ($pageOrder) {
-            $leftRank = isset($pageOrder[$left['id']]) ? $pageOrder[$left['id']] : 99;
-            $rightRank = isset($pageOrder[$right['id']]) ? $pageOrder[$right['id']] : 99;
-
-            return $leftRank <=> $rightRank;
-        });
-
-        foreach (isset($appConfig['graphList']) ? $appConfig['graphList'] : [] as $graphId) {
-            $payload['options']['graphs'][] = [
-                'id' => $graphId,
-                'label' => isset($graphLabelMap[$graphId]) ? $graphLabelMap[$graphId] : ucfirst($graphId),
             ];
         }
 

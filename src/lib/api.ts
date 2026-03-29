@@ -33,11 +33,7 @@ export function parseRoute(search: string, bootstrap: Bootstrap): AppRoute {
       bootstrap.options.pages,
       bootstrap.request.page
     ) as PageKey,
-    graph: validOption(
-      params.get("graph"),
-      bootstrap.options.graphs,
-      bootstrap.request.graph
-    ) as GraphKey,
+    graph: bootstrap.request.graph,
     style: validOption(
       params.get("style"),
       bootstrap.options.styles,

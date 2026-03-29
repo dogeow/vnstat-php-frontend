@@ -12,6 +12,43 @@
         return $ifaceId;
     }
 
+    function app_page_order_map()
+    {
+        return [
+            'h' => 0,
+            'd' => 1,
+            'm' => 2,
+            's' => 3,
+        ];
+    }
+
+    function app_page_ids(array $appConfig)
+    {
+        $pageOrder = app_page_order_map();
+        $configuredPages = isset($appConfig['pageList']) && is_array($appConfig['pageList'])
+            ? $appConfig['pageList']
+            : array_keys($pageOrder);
+        $pageIds = [];
+
+        foreach ($configuredPages as $pageId) {
+            if (!isset($pageOrder[$pageId]) || in_array($pageId, $pageIds, true)) {
+                continue;
+            }
+
+            $pageIds[] = $pageId;
+        }
+
+        if ($pageIds === []) {
+            return array_keys($pageOrder);
+        }
+
+        usort($pageIds, function ($left, $right) use ($pageOrder) {
+            return $pageOrder[$left] <=> $pageOrder[$right];
+        });
+
+        return $pageIds;
+    }
+
     function app_active_view_title($page, array $pageTitle)
     {
         return isset($pageTitle[$page]) ? ucfirst($pageTitle[$page]) : __('Summary');
