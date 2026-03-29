@@ -84,7 +84,7 @@ export default function App({ bootstrap }: AppProps) {
     return () => {
       controller.abort();
     };
-  }, [bootstrap, reloadToken, route.iface, route.page, route.graph]);
+  }, [bootstrap, reloadToken, route.iface, route.page]);
 
   useEffect(() => {
     const titleSource = payload?.meta.documentTitle ?? bootstrap.documentTitle;

@@ -1,5 +1,4 @@
 export type PageKey = "s" | "h" | "d" | "m";
-export type GraphKey = "large" | "small" | "none";
 
 export interface NavOption {
   id: string;
@@ -11,7 +10,6 @@ export interface Bootstrap {
   request: {
     iface: string;
     page: PageKey;
-    graph: GraphKey;
     style: string;
   };
   language: string;
@@ -77,7 +75,6 @@ export interface AppPayload {
     ifaceTitle: string;
     page: PageKey;
     pageTitle: string;
-    graph: GraphKey;
     style: string;
     documentTitle: string;
     language: string;
@@ -91,10 +88,8 @@ export interface AppPayload {
     rows: DetailRow[];
   };
   chart: {
-    enabled: boolean;
     title: string;
     description: string;
-    size: GraphKey;
     points: DetailRow[];
   };
 }

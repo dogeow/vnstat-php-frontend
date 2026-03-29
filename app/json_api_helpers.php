@@ -156,7 +156,7 @@
         ];
     }
 
-    function json_api_build_chart_payload($page, $graph, array $detail)
+    function json_api_build_chart_payload($page, array $detail)
     {
         $points = $detail['rows'];
 
@@ -168,12 +168,10 @@
         });
 
         return [
-            'enabled' => $graph !== 'none',
             'title' => $page === 's' ? __('Top 10 days') : __('Traffic chart'),
             'description' => $page === 's'
                 ? __('Peak traffic days rendered as an interactive chart for quick comparison.')
                 : __('Interactive traffic bars rendered directly in React from vnStat JSON data.'),
-            'size' => $graph,
             'points' => $points,
         ];
     }
@@ -222,13 +220,12 @@
                 'ifaceTitle' => app_iface_label($request['iface'], $appConfig),
                 'page' => $request['page'],
                 'pageTitle' => app_active_view_title($request['page'], $pageTitle),
-                'graph' => $request['graph'],
                 'style' => $request['style'],
                 'documentTitle' => app_document_title($request['iface'], $request['page'], $pageTitle, $appConfig),
                 'language' => isset($appConfig['language']) ? $appConfig['language'] : 'en',
             ],
             'summaryCards' => json_api_build_summary_cards($trafficData, $byteNotation),
             'detail' => $detail,
-            'chart' => json_api_build_chart_payload($request['page'], $request['graph'], $detail),
+            'chart' => json_api_build_chart_payload($request['page'], $detail),
         ];
     }

@@ -1,9 +1,8 @@
-import type { AppPayload, Bootstrap, GraphKey, PageKey } from "../types";
+import type { AppPayload, Bootstrap, PageKey } from "../types";
 
 export interface AppRoute {
   iface: string;
   page: PageKey;
-  graph: GraphKey;
   style: string;
 }
 
@@ -33,7 +32,6 @@ export function parseRoute(search: string, bootstrap: Bootstrap): AppRoute {
       bootstrap.options.pages,
       bootstrap.request.page
     ) as PageKey,
-    graph: bootstrap.request.graph,
     style: validOption(
       params.get("style"),
       bootstrap.options.styles,
@@ -46,7 +44,6 @@ export function buildSearch(route: AppRoute): string {
   const params = new URLSearchParams({
     if: route.iface,
     page: route.page,
-    graph: route.graph,
     style: route.style
   });
 
@@ -61,7 +58,6 @@ export async function fetchAppPayload(
   const params = new URLSearchParams({
     if: route.iface,
     page: route.page,
-    graph: route.graph,
     style: route.style,
     format: "app"
   });

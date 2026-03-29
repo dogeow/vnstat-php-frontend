@@ -43,8 +43,7 @@ Main options live in `config.php`:
 - `dataDir`: fallback directory for dump files
 - `byteNotation`: force a preferred unit or leave `null`
 - `defaultStyle`: default theme, currently `light`
-- `pageList`: available views, `s`, `h`, `d`, `m`
-- `graphList`: currently fixed to `small`
+- `pageList`: available views, `h`, `d`, `m`, `s`
 - `styleList`: available themes, currently `light`, `dark`
 
 ## URLs
@@ -53,19 +52,18 @@ The UI still uses query parameters:
 
 - `if`: interface
 - `page`: `s`, `h`, `d`, `m`
-- `graph`: currently `small`
 - `style`: `light` or `dark`
 
 Example:
 
 ```text
-/index.php?if=eth0&page=d&graph=small&style=light
+/index.php?if=eth0&page=d&style=light
 ```
 
 The app data endpoint is:
 
 ```text
-/api/traffic.php?if=eth0&page=d&graph=small&style=light&format=app
+/api/traffic.php?if=eth0&page=d&style=light&format=app
 ```
 
 ## Development

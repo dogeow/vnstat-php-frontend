@@ -43,8 +43,7 @@ npm run build
 - `dataDir`：dump 文件回退目录
 - `byteNotation`：强制流量单位，或保持 `null`
 - `defaultStyle`：默认主题，当前为 `light`
-- `pageList`：可用视图，`s`、`h`、`d`、`m`
-- `graphList`：当前固定为 `small`
+- `pageList`：可用视图，`h`、`d`、`m`、`s`
 - `styleList`：可用主题，当前为 `light`、`dark`
 
 ## 访问参数
@@ -53,19 +52,18 @@ npm run build
 
 - `if`：端口
 - `page`：`s`、`h`、`d`、`m`
-- `graph`：当前为 `small`
 - `style`：`light` 或 `dark`
 
 示例：
 
 ```text
-/index.php?if=eth0&page=d&graph=small&style=light
+/index.php?if=eth0&page=d&style=light
 ```
 
 React 前端使用的数据接口：
 
 ```text
-/api/traffic.php?if=eth0&page=d&graph=small&style=light&format=app
+/api/traffic.php?if=eth0&page=d&style=light&format=app
 ```
 
 ## 前端构建

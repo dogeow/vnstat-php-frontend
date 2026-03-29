@@ -19,7 +19,6 @@
     function vnstat_request_validate(array $query, array $appConfig)
     {
         $pageList = app_page_ids($appConfig);
-        $graphList = isset($appConfig['graphList']) ? $appConfig['graphList'] : ['small'];
         $styleList = isset($appConfig['styleList']) ? $appConfig['styleList'] : ['light', 'dark'];
         $ifaceList = isset($appConfig['ifaceList']) ? $appConfig['ifaceList'] : [];
         $defaultStyle = isset($appConfig['defaultStyle']) ? $appConfig['defaultStyle'] : 'light';
@@ -27,7 +26,6 @@
         $request = [
             'page' => vnstat_request_query_param($query, 'page'),
             'iface' => vnstat_request_query_param($query, 'if'),
-            'graph' => vnstat_request_query_param($query, 'graph'),
             'style' => vnstat_request_query_param($query, 'style'),
         ];
 
@@ -37,10 +35,6 @@
 
         if (!in_array($request['iface'], $ifaceList, true)) {
             $request['iface'] = $ifaceList[0];
-        }
-
-        if (!in_array($request['graph'], $graphList, true)) {
-            $request['graph'] = $graphList[0];
         }
 
         $themeDir = dirname(__DIR__).'/themes/'.$request['style'];

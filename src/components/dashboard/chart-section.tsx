@@ -29,11 +29,7 @@ export function ChartSection({
       <h2 className="text-xl font-semibold tracking-tight text-card-foreground">
         {payload.chart.title}
       </h2>
-      {!payload.chart.enabled ? (
-        <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
-          <h3 className="text-lg font-semibold">{bootstrap.labels.chartHidden}</h3>
-        </div>
-      ) : payload.chart.points.length === 0 ? (
+      {payload.chart.points.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
           <h3 className="text-lg font-semibold">{bootstrap.labels.noChartDataTitle}</h3>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
