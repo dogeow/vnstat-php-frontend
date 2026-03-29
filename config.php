@@ -34,7 +34,7 @@
         'dataDir' => './dumps',
         'byteNotation' => null,
         'defaultStyle' => 'light',
-        'pageList' => ['s', 'h', 'd', 'm'],
+        'pageList' => ['h', 'd', 'm', 's'],
         'graphList' => ['small'],
         'styleList' => ['light', 'dark'],
     ];
