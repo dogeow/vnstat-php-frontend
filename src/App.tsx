@@ -4,8 +4,6 @@ import {
   useEffect,
   useState
 } from "react";
-import { buttonVariants } from "./components/ui/button";
-import { Card, CardContent } from "./components/ui/card";
 import { ChartSection } from "./components/dashboard/chart-section";
 import { DetailSection } from "./components/dashboard/detail-section";
 import { SummarySection } from "./components/dashboard/summary-section";
@@ -108,55 +106,42 @@ export default function App({ bootstrap }: AppProps) {
     <div className="relative z-10 min-h-screen">
       <TopBar bootstrap={bootstrap} navigate={navigate} route={route} />
 
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <div className="space-y-4">
-          <section className="space-y-3">
-            <div className="flex flex-col gap-4 px-1 sm:flex-row sm:items-start sm:justify-between">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {bootstrap.labels.summaryTitle}
-              </h1>
-            </div>
-            {deferredPayload ? (
-              <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
-            ) : null}
-          </section>
-
-          <hr className="border-border/70" />
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+        <div className="space-y-6">
+          {deferredPayload ? (
+            <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
+          ) : null}
 
           <ViewTabs bootstrap={bootstrap} navigate={navigate} route={route} />
 
-          <main className="space-y-4">
           {loading && !payload ? (
-            <Card>
-              <CardContent className="p-6">
-                <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
-                  <h3 className="text-lg font-semibold">{bootstrap.labels.loading}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            <div className="rounded-xl border border-border bg-card p-6 surface-shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                <div>
+                  <p className="text-sm font-medium">{bootstrap.labels.loading}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {bootstrap.labels.loadingMessage}
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ) : null}
 
           {!loading && error ? (
-            <Card>
-              <CardContent className="space-y-4 p-6">
-                <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
-                  <h3 className="text-lg font-semibold">{bootstrap.labels.requestFailed}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{error}</p>
-                </div>
-                <button
-                  className={buttonVariants({ size: "lg" })}
-                  type="button"
-                  onClick={() => {
-                    setReloadToken((current) => current + 1);
-                  }}
-                >
-                  {bootstrap.labels.retry}
-                </button>
-              </CardContent>
-            </Card>
+            <div className="rounded-xl border border-border bg-card p-6 surface-shadow-sm">
+              <p className="text-sm font-medium">{bootstrap.labels.requestFailed}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{error}</p>
+              <button
+                className="mt-4 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--surface-strong)] transition-opacity hover:opacity-90"
+                type="button"
+                onClick={() => {
+                  setReloadToken((current) => current + 1);
+                }}
+              >
+                {bootstrap.labels.retry}
+              </button>
+            </div>
           ) : null}
 
           {deferredPayload ? (
@@ -166,10 +151,9 @@ export default function App({ bootstrap }: AppProps) {
             </>
           ) : null}
 
-          <div className="px-2 pb-6 text-center text-sm text-muted-foreground">
+          <p className="pb-4 text-center text-xs text-muted-foreground">
             {bootstrap.labels.footer}
-          </div>
-          </main>
+          </p>
         </div>
       </div>
     </div>

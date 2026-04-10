@@ -1,5 +1,5 @@
-import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { buildSearch, type AppRoute } from "../../lib/api";
+import { cn } from "../../lib/utils";
 import type { Bootstrap } from "../../types";
 
 interface ViewTabsProps {
@@ -18,35 +18,34 @@ export function ViewTabs({
   route
 }: ViewTabsProps) {
   return (
-    <Tabs value={route.page} className="w-full">
-      <TabsList className="grid h-auto w-full grid-cols-4 gap-2 bg-transparent p-0">
-        {bootstrap.options.pages.map((option) => {
-          const href = navHref({
-            ...route,
-            page: option.id as AppRoute["page"]
-          });
+    <nav className="flex gap-1 rounded-lg bg-[var(--surface-soft)] p-1">
+      {bootstrap.options.pages.map((option) => {
+        const href = navHref({
+          ...route,
+          page: option.id as AppRoute["page"]
+        });
+        const active = route.page === option.id;
 
-          return (
-            <TabsTrigger
-              key={option.id}
-              value={option.id}
-              className="w-full min-w-0 rounded-full border border-border bg-card/90 px-2 py-2.5 text-xs data-[state=active]:border-[var(--accent-strong)] data-[state=active]:bg-card sm:px-4 sm:py-3 sm:text-sm"
-              asChild
-            >
-              <a
-                href={href}
-                aria-current={route.page === option.id ? "page" : undefined}
-                onClick={(event) => {
-                  event.preventDefault();
-                  navigate({ page: option.id as AppRoute["page"] });
-                }}
-              >
-                {option.label}
-              </a>
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
-    </Tabs>
+        return (
+          <a
+            key={option.id}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex-1 rounded-md px-3 py-1.5 text-center text-sm font-medium transition-all",
+              active
+                ? "bg-[var(--tab-active-bg)] text-[var(--tab-active-text)] shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={(event) => {
+              event.preventDefault();
+              navigate({ page: option.id as AppRoute["page"] });
+            }}
+          >
+            {option.label}
+          </a>
+        );
+      })}
+    </nav>
   );
 }

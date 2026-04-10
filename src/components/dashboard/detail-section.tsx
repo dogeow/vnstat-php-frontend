@@ -1,18 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "../ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "../ui/table";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type { AppPayload, Bootstrap } from "../../types";
 
 interface DetailSectionProps {
@@ -24,127 +10,135 @@ export function DetailSection({
   bootstrap,
   payload
 }: DetailSectionProps) {
-  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  if (payload.detail.rows.length === 0) {
+    return (
+      <section>
+        <div className="rounded-xl border border-dashed border-border p-6">
+          <h3 className="text-sm font-semibold">{payload.detail.emptyTitle}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {payload.detail.emptyMessage}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
-  useEffect(() => {
-    setExpandedRowId(null);
-  }, [payload.detail.kind, payload.detail.rows]);
+  const maxTotal = Math.max(...payload.detail.rows.map((row) => row.total));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{payload.detail.title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {payload.detail.rows.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-secondary/60 p-6">
-            <h3 className="text-lg font-semibold">{payload.detail.emptyTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {payload.detail.emptyMessage}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="hidden md:block">
-              <div className="overflow-hidden rounded-[24px] border border-border bg-card/90">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead>{bootstrap.labels.period}</TableHead>
-                      <TableHead className="text-right">{bootstrap.labels.total}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {payload.detail.rows.map((row) => (
-                      <Fragment key={row.id}>
-                        <TableRow
-                          className="cursor-pointer"
-                          onClick={() => {
-                            setExpandedRowId((current) =>
-                              current === row.id ? null : row.id
-                            );
-                          }}
+    <section className="rounded-xl border border-border bg-card surface-shadow-sm">
+      <div className="border-b border-border px-4 py-3 sm:px-5">
+        <h2 className="text-sm font-semibold">{payload.detail.title}</h2>
+      </div>
+
+      <div className="hidden sm:block">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border text-xs text-muted-foreground">
+              <th className="px-4 py-2.5 text-left font-medium sm:px-5">{bootstrap.labels.period}</th>
+              <th className="w-28 px-4 py-2.5 text-right font-medium sm:px-5">
+                <span className="inline-flex items-center gap-1">
+                  <ArrowDown className="h-3 w-3 text-[var(--rx)]" />
+                  {bootstrap.labels.in}
+                </span>
+              </th>
+              <th className="w-28 px-4 py-2.5 text-right font-medium sm:px-5">
+                <span className="inline-flex items-center gap-1">
+                  <ArrowUp className="h-3 w-3 text-[var(--tx)]" />
+                  {bootstrap.labels.out}
+                </span>
+              </th>
+              <th className="w-28 px-4 py-2.5 text-right font-medium sm:px-5">{bootstrap.labels.total}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {payload.detail.rows.map((row) => {
+              const barWidth = maxTotal > 0 ? (row.total / maxTotal) * 100 : 0;
+              const rxPercent = row.total > 0 ? (row.rx / row.total) * 100 : 50;
+
+              return (
+                <tr
+                  key={row.id}
+                  className="group border-b border-border/50 last:border-0 transition-colors hover:bg-[var(--accent-soft)]"
+                >
+                  <td className="px-4 py-3 sm:px-5">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">{row.label}</span>
+                      <div className="hidden h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--surface-soft)] lg:block">
+                        <div
+                          className="flex h-full rounded-full"
+                          style={{ width: `${barWidth}%` }}
                         >
-                          <TableCell className="font-semibold">{row.label}</TableCell>
-                          <TableCell className="text-right font-mono text-[var(--accent-strong)]">
-                            {row.formatted.total}
-                          </TableCell>
-                        </TableRow>
-                        {expandedRowId === row.id ? (
-                          <TableRow className="bg-secondary/60 hover:bg-secondary/60">
-                            <TableCell colSpan={2}>
-                              <div className="grid gap-3 py-2 md:grid-cols-2">
-                                <div className="rounded-2xl bg-[var(--rx-soft)] px-4 py-3">
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                                    {bootstrap.labels.in}
-                                  </p>
-                                  <p className="mt-1 font-mono text-sm font-semibold">
-                                    {row.formatted.rx}
-                                  </p>
-                                </div>
-                                <div className="rounded-2xl bg-[var(--tx-soft)] px-4 py-3">
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                                    {bootstrap.labels.out}
-                                  </p>
-                                  <p className="mt-1 font-mono text-sm font-semibold">
-                                    {row.formatted.tx}
-                                  </p>
-                                </div>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ) : null}
-                      </Fragment>
-                    ))}
-                  </TableBody>
-                </Table>
+                          <div
+                            className="h-full rounded-l-full bg-[var(--rx-bar)]"
+                            style={{ width: `${rxPercent}%` }}
+                          />
+                          <div
+                            className="h-full rounded-r-full bg-[var(--tx-bar)]"
+                            style={{ width: `${100 - rxPercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm tabular-nums text-[var(--rx)] sm:px-5">
+                    {row.formatted.rx}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm tabular-nums text-[var(--tx)] sm:px-5">
+                    {row.formatted.tx}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-semibold tabular-nums sm:px-5">
+                    {row.formatted.total}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid gap-px bg-border/50 sm:hidden">
+        {payload.detail.rows.map((row) => {
+          const barWidth = maxTotal > 0 ? (row.total / maxTotal) * 100 : 0;
+          const rxPercent = row.total > 0 ? (row.rx / row.total) * 100 : 50;
+
+          return (
+            <div key={`${row.id}-mobile`} className="bg-card p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">{row.label}</span>
+                <span className="text-sm font-semibold tabular-nums">
+                  {row.formatted.total}
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface-soft)]">
+                <div
+                  className="flex h-full rounded-full"
+                  style={{ width: `${barWidth}%` }}
+                >
+                  <div
+                    className="h-full rounded-l-full bg-[var(--rx-bar)]"
+                    style={{ width: `${rxPercent}%` }}
+                  />
+                  <div
+                    className="h-full rounded-r-full bg-[var(--tx-bar)]"
+                    style={{ width: `${100 - rxPercent}%` }}
+                  />
+                </div>
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-xs">
+                <span className="text-[var(--rx)]">
+                  <ArrowDown className="mr-0.5 inline h-3 w-3" />
+                  <span className="tabular-nums">{row.formatted.rx}</span>
+                </span>
+                <span className="text-[var(--tx)]">
+                  <ArrowUp className="mr-0.5 inline h-3 w-3" />
+                  <span className="tabular-nums">{row.formatted.tx}</span>
+                </span>
               </div>
             </div>
-
-            <div className="grid gap-3 md:hidden">
-              {payload.detail.rows.map((row) => (
-                <Card
-                  key={`${row.id}-mobile`}
-                  className="rounded-[22px] border-border/80 bg-card/95 shadow-none"
-                >
-                  <CardContent className="p-4">
-                    <button
-                      className="flex w-full items-center justify-between gap-4 text-left"
-                      type="button"
-                      onClick={() => {
-                        setExpandedRowId((current) =>
-                          current === row.id ? null : row.id
-                        );
-                      }}
-                    >
-                      <span className="text-base font-semibold">{row.label}</span>
-                      <span className="font-mono text-sm font-semibold text-[var(--accent-strong)]">
-                        {row.formatted.total}
-                      </span>
-                    </button>
-                    {expandedRowId === row.id ? (
-                      <dl className="mt-4 grid gap-2">
-                        <div className="flex items-center justify-between rounded-2xl bg-[var(--rx-soft)] px-4 py-3">
-                          <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            {bootstrap.labels.in}
-                          </dt>
-                          <dd className="font-mono text-sm">{row.formatted.rx}</dd>
-                        </div>
-                        <div className="flex items-center justify-between rounded-2xl bg-[var(--tx-soft)] px-4 py-3">
-                          <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            {bootstrap.labels.out}
-                          </dt>
-                          <dd className="font-mono text-sm">{row.formatted.tx}</dd>
-                        </div>
-                      </dl>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          );
+        })}
+      </div>
+    </section>
   );
 }

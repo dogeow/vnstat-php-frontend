@@ -23,18 +23,18 @@ export function TrafficTooltip({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-[var(--shadow)]">
-      <h3 className="text-sm font-semibold">{row.label}</h3>
-      <dl className="mt-3 grid gap-2">
+    <div className="rounded-lg border border-border bg-card px-3 py-2.5 text-card-foreground surface-shadow">
+      <p className="text-xs font-semibold">{row.label}</p>
+      <div className="mt-2 grid gap-1.5">
         {tooltipRows(row, labels).map((item) => (
-          <div key={item.label} className="flex items-center justify-between gap-3">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <div key={item.label} className="flex items-center justify-between gap-4">
+            <span className="text-[11px] text-muted-foreground">
               {item.label}
-            </dt>
-            <dd className="font-mono text-xs">{item.value}</dd>
+            </span>
+            <span className="text-xs font-medium tabular-nums">{item.value}</span>
           </div>
         ))}
-      </dl>
+      </div>
     </div>
   );
 }

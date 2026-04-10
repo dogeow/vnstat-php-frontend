@@ -23,7 +23,7 @@
     --border-color: var(--border-soft);
     --input: var(--border-soft);
     --ring: var(--accent);
-    --radius: 1.25rem;
+    --radius: 0.75rem;
   }
 
   * {
@@ -36,8 +36,9 @@
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
-    font-family: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
     background: var(--bg);
+    letter-spacing: -0.01em;
   }
 
   a {
@@ -50,8 +51,13 @@
     box-shadow: var(--shadow);
   }
 
+  .surface-shadow-sm {
+    box-shadow: var(--shadow-sm);
+  }
+
   .surface-glass {
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
-    backdrop-filter: blur(14px);
+    background: var(--surface);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
 }
