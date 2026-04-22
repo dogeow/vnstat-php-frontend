@@ -5,13 +5,20 @@
     require_once __DIR__.'/../app/vnstat_request.php';
     require_once __DIR__.'/../app/vnstat_data_helpers.php';
     require_once __DIR__.'/../app/json_api_helpers.php';
+    require_once __DIR__.'/../app/react_shell_helpers.php';
 
     $appConfig['language'] = app_localize_load($appConfig['locale'], $appConfig['language']);
     $pageTitle = vnstat_request_page_title_map();
     $request = vnstat_request_validate($_GET, $appConfig);
+    $format = isset($_GET['format']) ? trim((string) $_GET['format']) : '';
+
+    if ($format === 'bootstrap') {
+        app_json_response(react_shell_build_bootstrap_payload($request, $appConfig, $pageTitle));
+    }
+
     $trafficData = vnstat_data_fetch($request['iface'], $appConfig);
 
-    if (isset($_GET['format']) && $_GET['format'] === 'app') {
+    if ($format === 'app') {
         app_json_response(json_api_build_app_payload($request, $appConfig, $pageTitle, $trafficData));
     }
 

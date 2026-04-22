@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>vnStat React Dashboard</title>
+  <meta name="description" content="React-based vnStat traffic dashboard with PHP-backed data endpoints."/>
+  <link id="theme-stylesheet" rel="stylesheet" href="themes/light/style.css"/>
+  <style>
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg, #f5f5f7);
+      color: var(--text, #1d1d1f);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    }
+
+    .boot-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .boot-card {
+      width: min(100%, 420px);
+      border: 1px solid var(--border-soft, rgba(0, 0, 0, 0.06));
+      border-radius: 16px;
+      background: var(--surface-strong, #ffffff);
+      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
+      padding: 24px;
+    }
+
+    .boot-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .boot-copy {
+      margin: 6px 0 0;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--muted, #86868b);
+    }
+  </style>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var style = params.get("style");
+
+      if (!style || /^[a-z0-9_-]+$/i.test(style) !== true) {
+        return;
+      }
+
+      var themeLink = document.getElementById("theme-stylesheet");
+      if (themeLink) {
+        themeLink.href = "themes/" + style + "/style.css";
+      }
+    })();
+  </script>
+  <script>
+    (function () {
+      var entryKey = "src/main.tsx";
+
+      function renderBuildWarning(message) {
+        var root = document.getElementById("app-root");
+
+        if (!root) {
+          return;
+        }
+
+        root.innerHTML = "";
+
+        var shell = document.createElement("main");
+        shell.className = "boot-shell";
+
+        var card = document.createElement("section");
+        card.className = "boot-card";
+
+        var title = document.createElement("h3");
+        title.className = "boot-title";
+        title.textContent = "React assets are missing";
+
+        var copy = document.createElement("p");
+        copy.className = "boot-copy";
+        copy.textContent = message;
+
+        var steps = document.createElement("pre");
+        steps.className = "boot-copy";
+        steps.textContent = "npm install\nnpm run build";
+
+        card.appendChild(title);
+        card.appendChild(copy);
+        card.appendChild(steps);
+        shell.appendChild(card);
+        root.appendChild(shell);
+      }
+
+      function loadAssets(entry) {
+        if (Array.isArray(entry.css)) {
+          entry.css.forEach(function (cssFile) {
+            var cssLink = document.createElement("link");
+            cssLink.rel = "stylesheet";
+            cssLink.href = "dist/" + cssFile;
+            document.head.appendChild(cssLink);
+          });
+        }
+
+        if (!entry.file) {
+          renderBuildWarning("The Vite manifest does not contain a frontend entry file.");
+          return;
+        }
+
+        var moduleScript = document.createElement("script");
+        moduleScript.type = "module";
+        moduleScript.src = "dist/" + entry.file;
+        document.body.appendChild(moduleScript);
+      }
+
+      fetch("dist/manifest.json", {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json"
+        }
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("The frontend manifest could not be loaded.");
+          }
+
+          return response.json();
+        })
+        .then(function (manifest) {
+          var entry = manifest && manifest[entryKey];
+
+          if (!entry) {
+            renderBuildWarning("The frontend manifest does not contain src/main.tsx. Rebuild the React bundle before deployment.");
+            return;
+          }
+
+          loadAssets(entry);
+        })
+        .catch(function (error) {
+          var message = error instanceof Error
+            ? error.message
+            : "Unable to load the frontend manifest.";
+
+          renderBuildWarning(message);
+        });
+    })();
+  </script>
+</head>
+<body>
+  <div id="app-root">
+    <main class="boot-shell">
+      <section class="boot-card">
+        <p class="boot-title">Loading dashboard...</p>
+        <p class="boot-copy">Preparing the React application.</p>
+      </section>
+    </main>
+  </div>
+  <noscript>
+    <main>
+      <section>
+        <h3>JavaScript is required</h3>
+        <p>The React frontend needs JavaScript enabled to render the vnStat dashboard.</p>
+      </section>
+    </main>
+  </noscript>
+</body>
+</html>

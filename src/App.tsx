@@ -32,7 +32,7 @@ export default function App({ bootstrap }: AppProps) {
     parseRoute(window.location.search, bootstrap)
   );
   const [payload, setPayload] = useState<AppPayload | null>(null);
-  const deferredPayload = useDeferredValue(payload);
+  const displayPayload = useDeferredValue(payload);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -60,7 +60,6 @@ export default function App({ bootstrap }: AppProps) {
 
     setLoading(true);
     setError(null);
-    setPayload(null);
 
     fetchAppPayload(bootstrap, route, controller.signal)
       .then((nextPayload) => {
@@ -102,19 +101,34 @@ export default function App({ bootstrap }: AppProps) {
     setNextRoute(nextRoute);
   };
 
+  const payloadMatchesRoute =
+    displayPayload?.meta.iface === route.iface &&
+    displayPayload?.meta.page === route.page;
+  const shouldRenderPayload = Boolean(displayPayload) && (payloadMatchesRoute || loading);
+  const showInitialLoading = loading && !displayPayload;
+  const showRefreshing = loading && Boolean(displayPayload) && !payloadMatchesRoute;
+
   return (
     <div className="relative z-10 min-h-screen">
       <TopBar bootstrap={bootstrap} navigate={navigate} route={route} />
 
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
         <div className="space-y-6">
-          {deferredPayload ? (
-            <SummarySection cards={deferredPayload.summaryCards} bootstrap={bootstrap} />
+          {shouldRenderPayload && displayPayload ? (
+            <SummarySection cards={displayPayload.summaryCards} bootstrap={bootstrap} />
           ) : null}
 
           <ViewTabs bootstrap={bootstrap} navigate={navigate} route={route} />
 
-          {loading && !payload ? (
+          {showRefreshing ? (
+            <div className="flex justify-end" aria-live="polite">
+              <div className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground surface-shadow-sm">
+                {bootstrap.labels.loading}
+              </div>
+            </div>
+          ) : null}
+
+          {showInitialLoading ? (
             <div className="rounded-xl border border-border bg-card p-6 surface-shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
@@ -144,10 +158,10 @@ export default function App({ bootstrap }: AppProps) {
             </div>
           ) : null}
 
-          {deferredPayload ? (
+          {shouldRenderPayload && displayPayload ? (
             <>
-              <ChartSection payload={deferredPayload} bootstrap={bootstrap} />
-              <DetailSection payload={deferredPayload} bootstrap={bootstrap} />
+              <ChartSection payload={displayPayload} bootstrap={bootstrap} />
+              <DetailSection payload={displayPayload} bootstrap={bootstrap} />
             </>
           ) : null}
 

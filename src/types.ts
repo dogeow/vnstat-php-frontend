@@ -93,9 +93,3 @@ export interface AppPayload {
     points: DetailRow[];
   };
 }
-
-declare global {
-  interface Window {
-    __VNSTAT_BOOTSTRAP__?: Bootstrap;
-  }
-}

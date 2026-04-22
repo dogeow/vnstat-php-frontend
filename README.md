@@ -4,11 +4,13 @@ A modern vnStat dashboard with a React frontend and a small PHP backend.
 
 ## Overview
 
-- Page entry: `index.php`
+- Page entry: `index.html`
 - Data API: `api/traffic.php`
 - Frontend source: `src/`
 - Internal PHP helpers: `app/`
 - Themes: `themes/light`, `themes/dark`
+
+`index.php` is kept only as a compatibility redirect to `index.html`.
 
 ## Requirements
 
@@ -29,7 +31,7 @@ npm install
 npm run build
 ```
 
-4. Open `index.php` in the browser.
+4. Open `index.html` in the browser, or use the site root if your web server maps it there.
 
 ## Configuration
 
@@ -57,13 +59,21 @@ The UI still uses query parameters:
 Example:
 
 ```text
-/index.php?if=eth0&page=d&style=light
+/index.html?if=eth0&page=d&style=light
 ```
+
+Legacy links that still point at `index.php` are redirected to `index.html` with the same query string.
 
 The app data endpoint is:
 
 ```text
 /api/traffic.php?if=eth0&page=d&style=light&format=app
+```
+
+The bootstrap endpoint used before the app renders is:
+
+```text
+/api/traffic.php?if=eth0&page=d&style=light&format=bootstrap
 ```
 
 ## Development

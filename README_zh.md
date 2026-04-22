@@ -4,11 +4,13 @@
 
 ## 项目结构
 
-- 页面入口：`index.php`
+- 页面入口：`index.html`
 - 数据接口：`api/traffic.php`
 - 前端源码：`src/`
 - PHP 内部模块：`app/`
 - 主题目录：`themes/light`、`themes/dark`
+
+`index.php` 只保留为兼容跳转入口，会把旧链接重定向到 `index.html`。
 
 ## 运行要求
 
@@ -29,7 +31,7 @@ npm install
 npm run build
 ```
 
-4. 浏览器访问 `index.php`。
+4. 浏览器访问 `index.html`，或者访问已经映射到该静态入口的站点根路径。
 
 ## 配置说明
 
@@ -57,13 +59,21 @@ npm run build
 示例：
 
 ```text
-/index.php?if=eth0&page=d&style=light
+/index.html?if=eth0&page=d&style=light
 ```
+
+旧的 `index.php` 链接会保留查询参数并重定向到 `index.html`。
 
 React 前端使用的数据接口：
 
 ```text
 /api/traffic.php?if=eth0&page=d&style=light&format=app
+```
+
+React 首次启动时会先请求 bootstrap：
+
+```text
+/api/traffic.php?if=eth0&page=d&style=light&format=bootstrap
 ```
 
 ## 前端构建
