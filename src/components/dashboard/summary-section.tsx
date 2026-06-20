@@ -34,7 +34,7 @@ export function SummarySection({
           <p className="mt-2 text-xl font-semibold tabular-nums tracking-tight sm:text-2xl">
             {card.formatted.total}
           </p>
-          <div className="mt-3 flex items-center gap-3 text-xs">
+          <div className="mt-3 flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:gap-3">
             <span className="flex items-center gap-1 text-[var(--rx)]">
               <ArrowDown className="h-3 w-3" />
               <span className="font-medium tabular-nums">{card.formatted.rx}</span>
