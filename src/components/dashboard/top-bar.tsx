@@ -1,7 +1,5 @@
-import { useRef } from "react";
-import { ChevronDown, Moon, Sun, Activity } from "lucide-react";
-import { buildSearch, type AppRoute } from "../../lib/api";
-import { cn } from "../../lib/utils";
+import { Activity, ChevronDown, Moon, Sun } from "lucide-react";
+import type { AppRoute } from "../../lib/api";
 import type { Bootstrap } from "../../types";
 
 interface TopBarProps {
@@ -10,98 +8,65 @@ interface TopBarProps {
   route: AppRoute;
 }
 
-function navHref(route: AppRoute) {
-  return buildSearch(route);
-}
-
-export function TopBar({
-  bootstrap,
-  navigate,
-  route
-}: TopBarProps) {
-  const interfaceMenuRef = useRef<HTMLDetailsElement | null>(null);
-  const currentInterface =
-    bootstrap.options.ifaces.find((option) => option.id === route.iface) ??
-    bootstrap.options.ifaces[0];
-  const hasMultipleInterfaces = bootstrap.options.ifaces.length > 1;
-  const nextStyle = route.style === "dark" ? "light" : "dark";
-  const nextStyleOption =
-    bootstrap.options.styles.find((option) => option.id === nextStyle) ??
-    bootstrap.options.styles[0];
-  const nextStyleHref = navHref({ ...route, style: nextStyleOption?.id ?? nextStyle });
+export function TopBar({ bootstrap, navigate, route }: TopBarProps) {
+  const currentInterface = bootstrap.options.ifaces.find(
+    (option) => option.id === route.iface
+  );
+  const styles = bootstrap.options.styles;
+  const styleIndex = styles.findIndex((option) => option.id === route.style);
+  const nextStyle = styles[(styleIndex + 1) % styles.length];
 
   return (
-    <header className="sticky top-0 z-40 surface-glass border-b border-border">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3 sm:px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-[var(--surface-strong)]">
-            <Activity className="h-4 w-4" />
+    <header className="sticky top-0 z-40 border-b border-border surface-glass">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="flex shrink-0 items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] text-[var(--on-accent)]">
+            <Activity aria-hidden="true" className="h-5 w-5" />
           </div>
-
-          {hasMultipleInterfaces ? (
-            <details ref={interfaceMenuRef} className="group relative">
-              <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-                <span>{currentInterface?.label ?? route.iface}</span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" />
-              </summary>
-              <div className="absolute left-0 top-[calc(100%+0.5rem)] z-50 min-w-[200px] rounded-xl border border-border bg-card p-1.5 surface-shadow">
-                <div className="grid gap-0.5">
-                  {bootstrap.options.ifaces.map((option) => {
-                    const href = navHref({ ...route, iface: option.id });
-                    const active = route.iface === option.id;
-
-                    return (
-                      <a
-                        key={option.id}
-                        className={cn(
-                          "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
-                          active
-                            ? "bg-[var(--accent-soft)] font-medium"
-                            : "hover:bg-[var(--accent-soft)]"
-                        )}
-                        href={href}
-                        aria-current={active ? "page" : undefined}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          interfaceMenuRef.current?.removeAttribute("open");
-                          navigate({ iface: option.id });
-                        }}
-                      >
-                        <span>{option.label}</span>
-                        {option.meta ? (
-                          <span className="text-xs text-muted-foreground">
-                            {option.meta}
-                          </span>
-                        ) : null}
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            </details>
+          <span className="text-lg font-semibold tracking-tight">vnStat</span>
+        </div>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+          {bootstrap.options.ifaces.length > 1 ? (
+            <label className="relative min-w-0">
+              <span className="sr-only">{bootstrap.labels.interfaces}</span>
+              <select
+                className="h-10 w-full max-w-[min(48vw,22rem)] appearance-none truncate rounded-lg border border-border bg-card py-2 pl-3 pr-8 text-sm font-medium sm:max-w-sm"
+                value={route.iface}
+                onChange={(event) => navigate({ iface: event.target.value })}
+              >
+                {bootstrap.options.ifaces.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                    {option.label !== option.id ? ` · ${option.id}` : ""}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                aria-hidden="true"
+                className="pointer-events-none absolute right-2.5 top-3 h-4 w-4 text-muted-foreground"
+              />
+            </label>
           ) : (
-            <span className="text-sm font-semibold">
+            <span className="truncate text-sm font-medium">
               {currentInterface?.label ?? route.iface}
             </span>
           )}
+          {styles.length > 1 && nextStyle ? (
+            <button
+              type="button"
+              className="control-button h-10 w-10 shrink-0 px-0"
+              aria-label={`${bootstrap.labels.themeWord}: ${nextStyle.label}`}
+              title={`${bootstrap.labels.themeWord}: ${nextStyle.label}`}
+              onClick={() => navigate({ style: nextStyle.id })}
+            >
+              {route.style === "dark" ? (
+                <Sun aria-hidden="true" className="h-4 w-4" />
+              ) : (
+                <Moon aria-hidden="true" className="h-4 w-4" />
+              )}
+            </button>
+          ) : null}
         </div>
-
-        <button
-          type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-[var(--accent-soft)] hover:text-foreground"
-          aria-label={`${bootstrap.labels.themeWord}: ${nextStyleOption?.label ?? nextStyle}`}
-          title={`${bootstrap.labels.themeWord}: ${nextStyleOption?.label ?? nextStyle}`}
-          onClick={(event) => {
-            event.preventDefault();
-            navigate({ style: nextStyleOption?.id ?? nextStyle });
-          }}
-        >
-          {route.style === "dark" ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
-        </button>
       </div>
     </header>
   );

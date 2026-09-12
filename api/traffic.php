@@ -9,14 +9,22 @@
 
     $appConfig['language'] = app_localize_load($appConfig['locale'], $appConfig['language']);
     $pageTitle = vnstat_request_page_title_map();
-    $request = vnstat_request_validate($_GET, $appConfig);
-    $format = isset($_GET['format']) ? trim((string) $_GET['format']) : '';
+    try {
+        $request = vnstat_request_validate($_GET, $appConfig);
+    } catch (RuntimeException $exception) {
+        app_json_response(['error' => $exception->getMessage()], 503);
+    }
+    $format = vnstat_request_query_param($_GET, 'format');
 
     if ($format === 'bootstrap') {
         app_json_response(react_shell_build_bootstrap_payload($request, $appConfig, $pageTitle));
     }
 
-    $trafficData = vnstat_data_fetch($request['iface'], $appConfig);
+    try {
+        $trafficData = vnstat_data_fetch($request['iface'], $appConfig);
+    } catch (RuntimeException $exception) {
+        app_json_response(['error' => $exception->getMessage()], 503);
+    }
 
     if ($format === 'app') {
         app_json_response(json_api_build_app_payload($request, $appConfig, $pageTitle, $trafficData));

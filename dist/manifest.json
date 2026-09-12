@@ -1,11 +1,23 @@
 {
+  "src/components/dashboard/chart-section.tsx": {
+    "file": "assets/chart-section-BKTZ5eYF.js",
+    "name": "chart-section",
+    "src": "src/components/dashboard/chart-section.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
   "src/main.tsx": {
-    "file": "assets/main-CwpYQDEW.js",
+    "file": "assets/main-DWXQDsVu.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
+    "dynamicImports": [
+      "src/components/dashboard/chart-section.tsx"
+    ],
     "css": [
-      "assets/main-6ifTNFrR.css"
+      "assets/main-CJXCKPYv.css"
     ]
   }
 }

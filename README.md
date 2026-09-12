@@ -53,7 +53,6 @@ Example deployment path:
 That directory should contain at least:
 
 - `index.html`
-- `index.php`
 - `api/`
 - `app/`
 - `dist/`
@@ -69,7 +68,7 @@ server {
     server_name vnstat.example.com;
 
     root /var/www/vnstat;
-    index index.html index.php;
+    index index.html;
     charset utf-8;
 
     ssl_certificate /root/.acme.sh/example.com_ecc/fullchain.cer;
@@ -176,7 +175,7 @@ Example:
 /index.html?if=eth0&page=d&style=light
 ```
 
-Legacy links that still point at `index.php` are redirected to `index.html` with the same query string.
+Use `index.html` for page links. The project does not include an `index.php` entry point.
 
 The app data endpoint is:
 
@@ -201,6 +200,24 @@ npm run build
 
 The repository already includes built assets in `dist/`, but if you change anything in `src/`, rebuild before deployment.
 
+## Dashboard controls
+
+- Switch interfaces and time ranges without reloading the page; browser back/forward restores the view.
+- Refresh traffic manually. “Last fetched” is the browser fetch time, not the vnStat collection time. Failed refreshes retain the last successful data for the same view.
+- The theme is remembered locally; an explicit `style` URL parameter takes priority.
+- Toggle incoming/outgoing series in the chart; sort detail rows and export them as CSV with raw KB counters.
+- Missing vnStat or dump data returns HTTP 503 with a JSON error. A valid empty dataset shows an empty state.
+- Relative `dataDir` paths resolve from the project root. Old samples use “Latest” labels instead of claiming they are current.
+
+Validation commands:
+
+```bash
+npm test
+npm run build
+```
+
+Tests require Node.js and PHP. The build also checks TypeScript. For a local preview, build the frontend and run `php -S 127.0.0.1:8080 -t .` from the project root; actual traffic requires your configured vnStat binary or dump files.
+
 ## Troubleshooting
 
 ### 403 Forbidden
@@ -208,7 +225,7 @@ The repository already includes built assets in `dist/`, but if you change anyth
 If opening the site returns `403`, check these items in order:
 
 1. `root` points to the project directory that contains `index.html`.
-2. Nginx uses `index index.html index.php;` instead of only `index.php`.
+2. Nginx uses `index index.html;` instead of only `index.php`.
 3. The `location /` block includes `try_files $uri $uri/ /index.html?$query_string;`.
 4. The project files and parent directories are readable and searchable by the Nginx user.
 5. `dist/manifest.json` and `dist/assets/` exist after build.
@@ -223,7 +240,7 @@ php -l /var/www/vnstat/api/traffic.php
 sudo nginx -t
 ```
 
-If `/index.php` works but `/` returns `403`, the problem is usually the Nginx `index` or `try_files` configuration, not the application code.
+If `/index.html` works but `/` returns `403`, check the Nginx `index` and `try_files` configuration.
 
 ### No traffic data
 

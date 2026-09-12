@@ -36,13 +36,48 @@
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui,
+      sans-serif;
     background: var(--bg);
     letter-spacing: -0.01em;
   }
 
   a {
     @apply text-inherit no-underline;
+  }
+
+  :is(a, button, select):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  button,
+  select {
+    touch-action: manipulation;
+  }
+}
+
+@layer components {
+  .control-button {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium transition-colors;
+  }
+  .control-button:hover:not(:disabled) {
+    background: var(--accent-soft);
+  }
+  .control-button:disabled {
+    cursor: wait;
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

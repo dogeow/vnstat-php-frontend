@@ -69,7 +69,21 @@
         );
     }
 
-    function json_api_build_summary_cards(array $trafficData, $byteNotation)
+    function json_api_latest_active_row(array $rows)
+    {
+        $latest = null;
+        foreach ($rows as $row) {
+            if ((int) ($row['act'] ?? 0) !== 1 || (int) ($row['time'] ?? 0) <= 0) {
+                continue;
+            }
+            if ($latest === null || $row['time'] > $latest['time']) {
+                $latest = $row;
+            }
+        }
+        return $latest;
+    }
+
+    function json_api_build_summary_cards(array $trafficData, $byteNotation, $now = null)
     {
         $cards = [];
         $summary = isset($trafficData['summary']) ? $trafficData['summary'] : [];
@@ -79,16 +93,20 @@
         $totalRx = (isset($summary['totalrx']) ? $summary['totalrx'] : 0) * 1024 + (isset($summary['totalrxk']) ? $summary['totalrxk'] : 0);
         $totalTx = (isset($summary['totaltx']) ? $summary['totaltx'] : 0) * 1024 + (isset($summary['totaltxk']) ? $summary['totaltxk'] : 0);
 
-        if (isset($hour[0])) {
-            $cards[] = json_api_summary_card_record('hour', __('This hour'), $hour[0]['rx'], $hour[0]['tx'], $byteNotation);
+        $now = $now ?? time();
+        foreach ([
+            ['hour', $hour, 'Y-m-d H', __('This hour'), __('Latest hour')],
+            ['day', $day, 'Y-m-d', __('This day'), __('Latest day')],
+            ['month', $month, 'Y-m', __('This month'), __('Latest month')],
+        ] as $period) {
+            [$id, $rows, $pattern, $currentLabel, $latestLabel] = $period;
+            $row = json_api_latest_active_row($rows);
+            if ($row !== null) {
+                $label = date($pattern, $row['time']) === date($pattern, $now) ? $currentLabel : $latestLabel;
+                $cards[] = json_api_summary_card_record($id, $label, $row['rx'], $row['tx'], $byteNotation);
+            }
         }
-        if (isset($day[0])) {
-            $cards[] = json_api_summary_card_record('day', __('This day'), $day[0]['rx'], $day[0]['tx'], $byteNotation);
-        }
-        if (isset($month[0])) {
-            $cards[] = json_api_summary_card_record('month', __('This month'), $month[0]['rx'], $month[0]['tx'], $byteNotation);
-        }
-        if ($totalRx > 0 || $totalTx > 0) {
+        if (isset($summary['totalrx']) || isset($summary['totaltx'])) {
             $cards[] = json_api_summary_card_record('total', __('All time'), $totalRx, $totalTx, $byteNotation);
         }
 

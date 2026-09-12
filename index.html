@@ -11,6 +11,8 @@
       -webkit-text-size-adjust: 100%;
     }
 
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -53,6 +55,10 @@
     (function () {
       var params = new URLSearchParams(window.location.search);
       var style = params.get("style");
+
+      if (!style) {
+        try { style = localStorage.getItem("vnstat-theme"); } catch (_) {}
+      }
 
       if (!style || /^[a-z0-9_-]+$/i.test(style) !== true) {
         return;
@@ -120,6 +126,9 @@
         var moduleScript = document.createElement("script");
         moduleScript.type = "module";
         moduleScript.src = "dist/" + entry.file;
+        moduleScript.onerror = function () {
+          renderBuildWarning("The frontend assets could not be loaded. Reload the page or rebuild the frontend bundle.");
+        };
         document.body.appendChild(moduleScript);
       }
 

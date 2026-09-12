@@ -1,175 +1,208 @@
-import {
-  startTransition,
-  useDeferredValue,
-  useEffect,
-  useState
-} from "react";
-import { ChartSection } from "./components/dashboard/chart-section";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { DetailSection } from "./components/dashboard/detail-section";
 import { SummarySection } from "./components/dashboard/summary-section";
 import { TopBar } from "./components/dashboard/top-bar";
 import { ViewTabs } from "./components/dashboard/view-tabs";
-import { buildSearch, fetchAppPayload, parseRoute, type AppRoute } from "./lib/api";
-import type { AppPayload, Bootstrap } from "./types";
+import { useTraffic } from "./hooks/use-traffic";
+import { buildSearch, parseRoute, type AppRoute } from "./lib/api";
+import { resolveLocale } from "./lib/format";
+import { syncTheme } from "./lib/theme";
+import type { Bootstrap } from "./types";
 
-interface AppProps {
-  bootstrap: Bootstrap;
-}
+const ChartSection = lazy(() =>
+  import("./components/dashboard/chart-section").then((module) => ({
+    default: module.ChartSection
+  }))
+);
 
-function navHref(route: AppRoute) {
-  return buildSearch(route);
-}
-
-function syncTheme(style: string) {
-  const link = document.getElementById("theme-stylesheet") as HTMLLinkElement | null;
-  if (link) {
-    link.href = `themes/${style}/style.css`;
-  }
-}
-
-export default function App({ bootstrap }: AppProps) {
-  const [route, setRoute] = useState<AppRoute>(() =>
+export default function App({ bootstrap }: { bootstrap: Bootstrap }) {
+  const [route, setRoute] = useState(() =>
     parseRoute(window.location.search, bootstrap)
   );
-  const [payload, setPayload] = useState<AppPayload | null>(null);
-  const displayPayload = useDeferredValue(payload);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadToken, setReloadToken] = useState(0);
+  const { payload, loading, error, receivedAt, refresh } = useTraffic(
+    bootstrap,
+    route
+  );
+  const labels = bootstrap.labels;
+
+  useEffect(() => syncTheme(route.style), [route.style]);
 
   useEffect(() => {
-    syncTheme(route.style);
-  }, [route.style]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      startTransition(() => {
-        setRoute(parseRoute(window.location.search, bootstrap));
-      });
-    };
-
+    const handlePopState = () =>
+      setRoute(parseRoute(window.location.search, bootstrap));
     window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
+    return () => window.removeEventListener("popstate", handlePopState);
   }, [bootstrap]);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    setLoading(true);
-    setError(null);
-
-    fetchAppPayload(bootstrap, route, controller.signal)
-      .then((nextPayload) => {
-        setPayload(nextPayload);
-      })
-      .catch((reason: unknown) => {
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        setError(reason instanceof Error ? reason.message : bootstrap.labels.requestFailed);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, [bootstrap, reloadToken, route.iface, route.page]);
-
-  useEffect(() => {
-    const titleSource = payload?.meta.documentTitle ?? bootstrap.documentTitle;
-    document.title = titleSource;
-  }, [bootstrap.documentTitle, payload?.meta.documentTitle]);
-
-  const setNextRoute = (nextRoute: AppRoute) => {
-    startTransition(() => {
-      setRoute(nextRoute);
-    });
-
-    window.history.pushState({}, "", navHref(nextRoute));
-  };
+    document.title = payload?.meta.documentTitle ?? bootstrap.documentTitle;
+  }, [bootstrap.documentTitle, payload]);
 
   const navigate = (partial: Partial<AppRoute>) => {
     const nextRoute = { ...route, ...partial };
-    setNextRoute(nextRoute);
+    if (buildSearch(nextRoute) === buildSearch(route)) return;
+    // Keep the previous entry explicit so back navigation restores its theme, too.
+    window.history.replaceState(
+      {},
+      "",
+      buildSearch(route) + window.location.hash
+    );
+    window.history.pushState(
+      {},
+      "",
+      buildSearch(nextRoute) + window.location.hash
+    );
+    setRoute(nextRoute);
   };
 
-  const payloadMatchesRoute =
-    displayPayload?.meta.iface === route.iface &&
-    displayPayload?.meta.page === route.page;
-  const shouldRenderPayload = Boolean(displayPayload) && (payloadMatchesRoute || loading);
-  const showInitialLoading = loading && !displayPayload;
-  const showRefreshing = loading && Boolean(displayPayload) && !payloadMatchesRoute;
+  const hasData =
+    payload &&
+    (payload.summaryCards.length > 0 || payload.detail.rows.length > 0);
 
   return (
-    <div className="relative z-10 min-h-screen">
+    <div className="min-h-screen">
       <TopBar bootstrap={bootstrap} navigate={navigate} route={route} />
+      <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:space-y-7 sm:px-6 sm:py-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              {labels.dashboard}
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {labels.dashboardDescription}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-muted-foreground" role="status">
+              {loading ? (
+                payload ? (
+                  labels.refreshing
+                ) : (
+                  labels.loading
+                )
+              ) : receivedAt ? (
+                <>
+                  {labels.lastFetched}{" "}
+                  <time
+                    dateTime={receivedAt.toISOString()}
+                    className="tabular-nums"
+                  >
+                    {receivedAt.toLocaleTimeString(
+                      resolveLocale(bootstrap.language),
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: false
+                      }
+                    )}
+                  </time>
+                </>
+              ) : null}
+            </p>
+            <button
+              type="button"
+              className="control-button shrink-0"
+              onClick={refresh}
+              disabled={loading}
+            >
+              <RefreshCw
+                aria-hidden="true"
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
+              {labels.refresh}
+            </button>
+          </div>
+        </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-        <div className="space-y-6">
-          {shouldRenderPayload && displayPayload ? (
-            <SummarySection cards={displayPayload.summaryCards} bootstrap={bootstrap} />
-          ) : null}
-
-          <ViewTabs bootstrap={bootstrap} navigate={navigate} route={route} />
-
-          {showRefreshing ? (
-            <div className="flex justify-end" aria-live="polite">
-              <div className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground surface-shadow-sm">
-                {bootstrap.labels.loading}
-              </div>
-            </div>
-          ) : null}
-
-          {showInitialLoading ? (
-            <div className="rounded-xl border border-border bg-card p-6 surface-shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-                <div>
-                  <p className="text-sm font-medium">{bootstrap.labels.loading}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {bootstrap.labels.loadingMessage}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {!loading && error ? (
-            <div className="rounded-xl border border-border bg-card p-6 surface-shadow-sm">
-              <p className="text-sm font-medium">{bootstrap.labels.requestFailed}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{error}</p>
+        {error ? (
+          <div
+            role="alert"
+            className="flex items-start gap-3 rounded-xl border border-[var(--error-border)] bg-[var(--error-bg)] p-4"
+          >
+            <AlertCircle
+              aria-hidden="true"
+              className="mt-0.5 h-5 w-5 shrink-0 text-[var(--error-text)]"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">{labels.requestFailed}</p>
+              <p className="mt-1 break-words text-sm text-muted-foreground">
+                {error}
+              </p>
+              {payload ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {labels.retainedData}
+                </p>
+              ) : null}
               <button
-                className="mt-4 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--surface-strong)] transition-opacity hover:opacity-90"
                 type="button"
-                onClick={() => {
-                  setReloadToken((current) => current + 1);
-                }}
+                className="control-button mt-3"
+                onClick={refresh}
               >
-                {bootstrap.labels.retry}
+                {labels.retry}
               </button>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {shouldRenderPayload && displayPayload ? (
+        {payload && payload.summaryCards.length > 0 ? (
+          <SummarySection cards={payload.summaryCards} bootstrap={bootstrap} />
+        ) : null}
+
+        <ViewTabs bootstrap={bootstrap} navigate={navigate} route={route} />
+
+        <div aria-busy={loading} className="space-y-6">
+          {loading && !payload ? (
+            <div className="space-y-4" aria-hidden="true">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {Array.from({ length: 4 }, (_, i) => (
+                  <div
+                    key={i}
+                    className="h-36 animate-pulse rounded-xl border border-border bg-card"
+                  />
+                ))}
+              </div>
+              <div className="h-80 animate-pulse rounded-xl border border-border bg-card" />
+            </div>
+          ) : null}
+          {payload && !hasData ? (
+            <section className="rounded-xl border border-dashed border-border bg-card px-6 py-16 text-center">
+              <h2 className="font-semibold">{labels.noTrafficDataTitle}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {labels.noTrafficDataMessage}
+              </p>
+            </section>
+          ) : payload ? (
             <>
-              <ChartSection payload={displayPayload} bootstrap={bootstrap} />
-              <DetailSection payload={displayPayload} bootstrap={bootstrap} />
+              <Suspense
+                fallback={
+                  <div
+                    role="status"
+                    className="flex h-80 items-center justify-center rounded-xl border border-border bg-card text-sm text-muted-foreground"
+                  >
+                    {labels.loading}
+                  </div>
+                }
+              >
+                <ChartSection
+                  key={`${route.iface}-${route.page}`}
+                  payload={payload}
+                  bootstrap={bootstrap}
+                />
+              </Suspense>
+              <DetailSection
+                key={`${route.iface}-${route.page}`}
+                payload={payload}
+                bootstrap={bootstrap}
+              />
             </>
           ) : null}
-
-          <p className="pb-4 text-center text-xs text-muted-foreground">
-            {bootstrap.labels.footer}
-          </p>
         </div>
-      </div>
+        <footer className="border-t border-border py-5 text-center text-xs text-muted-foreground">
+          {labels.footer}
+        </footer>
+      </main>
     </div>
   );
 }

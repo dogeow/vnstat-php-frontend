@@ -12,13 +12,12 @@ function navHref(route: AppRoute) {
   return buildSearch(route);
 }
 
-export function ViewTabs({
-  bootstrap,
-  navigate,
-  route
-}: ViewTabsProps) {
+export function ViewTabs({ bootstrap, navigate, route }: ViewTabsProps) {
   return (
-    <nav className="flex gap-1 rounded-lg bg-[var(--surface-soft)] p-1">
+    <nav
+      aria-label={bootstrap.labels.views}
+      className="flex gap-1 rounded-xl border border-border bg-[var(--surface-soft)] p-1 sm:w-fit sm:min-w-[400px]"
+    >
       {bootstrap.options.pages.map((option) => {
         const href = navHref({
           ...route,
@@ -32,12 +31,20 @@ export function ViewTabs({
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex-1 rounded-md px-3 py-1.5 text-center text-sm font-medium transition-all",
+              "flex min-h-10 flex-1 items-center justify-center rounded-lg px-3 py-2 text-center text-sm font-medium transition-colors",
               active
                 ? "bg-[var(--tab-active-bg)] text-[var(--tab-active-text)] shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             )}
             onClick={(event) => {
+              if (
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              )
+                return;
               event.preventDefault();
               navigate({ page: option.id as AppRoute["page"] });
             }}

@@ -4,26 +4,31 @@ function formatUnitParts(
   kbytes: number,
   preferredUnit: string | null
 ): { value: number; unit: string } {
-  const units = ["TB", "GB", "MB", "KB"] as const;
-  let scale = 1024 * 1024 * 1024;
-  let unitIndex = 0;
-  const hasPreferredUnit =
-    preferredUnit !== null &&
-    units.includes(preferredUnit as (typeof units)[number]);
-
-  while (((kbytes < scale) && scale > 1) || hasPreferredUnit) {
-    unitIndex += 1;
-    scale /= 1024;
-
-    if (hasPreferredUnit && units[unitIndex] === preferredUnit) {
-      break;
-    }
-  }
+  const units = ["KB", "MB", "GB", "TB"];
+  const safeValue = Number.isFinite(kbytes) ? Math.max(0, kbytes) : 0;
+  const preferredIndex = preferredUnit ? units.indexOf(preferredUnit) : -1;
+  const unitIndex =
+    preferredIndex >= 0
+      ? preferredIndex
+      : Math.min(
+          3,
+          Math.max(0, Math.floor(Math.log(safeValue || 1) / Math.log(1024)))
+        );
 
   return {
-    value: kbytes / scale,
+    value: safeValue / 1024 ** unitIndex,
     unit: units[unitIndex]
   };
+}
+
+export function resolveLocale(language: string): string {
+  const aliases: Record<string, string> = { cn: "zh-CN", br: "pt-BR" };
+  const locale = aliases[language] ?? language;
+  try {
+    return Intl.NumberFormat.supportedLocalesOf([locale])[0] ?? "en";
+  } catch {
+    return "en";
+  }
 }
 
 export function formatKbytes(
@@ -33,7 +38,7 @@ export function formatKbytes(
 ): string {
   const parts = formatUnitParts(kbytes, preferredUnit);
 
-  return `${new Intl.NumberFormat(locale, {
+  return `${new Intl.NumberFormat(resolveLocale(locale), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(parts.value)} ${parts.unit}`;
@@ -45,13 +50,7 @@ export function formatCompactKbytes(
   preferredUnit: string | null
 ): string {
   const text = formatKbytes(kbytes, locale, preferredUnit);
-  const [value, unit] = text.split(" ");
-
-  if (!value || !unit) {
-    return text;
-  }
-
-  return `${value}${unit}`;
+  return text.replace(/ (KB|MB|GB|TB)$/, "$1");
 }
 
 export function formatAxisKbytes(
@@ -68,7 +67,7 @@ export function formatAxisKbytes(
     maximumFractionDigits = 1;
   }
 
-  return `${new Intl.NumberFormat(locale, {
+  return `${new Intl.NumberFormat(resolveLocale(locale), {
     minimumFractionDigits: 0,
     maximumFractionDigits
   }).format(parts.value)}${parts.unit}`;

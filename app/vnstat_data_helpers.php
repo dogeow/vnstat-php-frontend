@@ -17,9 +17,13 @@
             return [];
         }
 
+        if ($dataDir[0] !== '/') {
+            $dataDir = dirname(__DIR__).'/'.$dataDir;
+        }
+
         $dumpFile = rtrim($dataDir, '/').'/vnstat_dump_'.$iface;
-        if (is_file($dumpFile)) {
-            return file($dumpFile);
+        if (is_file($dumpFile) && is_readable($dumpFile)) {
+            return file($dumpFile) ?: [];
         }
 
         return [];
@@ -421,8 +425,8 @@
             }
         }
 
-        if (vnstat_data_output_has_error($legacyLines)) {
-            return vnstat_data_empty();
+        if ($legacyLines === [] || vnstat_data_output_has_error($legacyLines)) {
+            throw new RuntimeException(__('Traffic data is unavailable. Check the vnStat service and interface configuration.'));
         }
 
         return vnstat_data_parse_legacy_lines($legacyLines, $useLabel, $appConfig);

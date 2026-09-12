@@ -13,7 +13,7 @@
 
     function vnstat_request_query_param(array $query, $key)
     {
-        return isset($query[$key]) ? trim((string) $query[$key]) : '';
+        return isset($query[$key]) && is_scalar($query[$key]) ? trim((string) $query[$key]) : '';
     }
 
     function vnstat_request_validate(array $query, array $appConfig)
@@ -22,6 +22,10 @@
         $styleList = isset($appConfig['styleList']) ? $appConfig['styleList'] : ['light', 'dark'];
         $ifaceList = isset($appConfig['ifaceList']) ? $appConfig['ifaceList'] : [];
         $defaultStyle = isset($appConfig['defaultStyle']) ? $appConfig['defaultStyle'] : 'light';
+
+        if ($ifaceList === []) {
+            throw new RuntimeException(__('No network interfaces are configured.'));
+        }
 
         $request = [
             'page' => vnstat_request_query_param($query, 'page'),

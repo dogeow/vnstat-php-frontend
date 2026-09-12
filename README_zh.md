@@ -53,7 +53,6 @@ npm run build
 该目录下至少要有：
 
 - `index.html`
-- `index.php`
 - `api/`
 - `app/`
 - `dist/`
@@ -69,7 +68,7 @@ server {
     server_name vnstat.example.com;
 
     root /var/www/vnstat;
-    index index.html index.php;
+    index index.html;
     charset utf-8;
 
     ssl_certificate /root/.acme.sh/example.com_ecc/fullchain.cer;
@@ -176,7 +175,7 @@ sudo systemctl reload php7.4-fpm
 /index.html?if=eth0&page=d&style=light
 ```
 
-旧的 `index.php` 链接会保留查询参数并重定向到 `index.html`。
+页面链接请使用 `index.html`，项目不包含 `index.php` 入口。
 
 React 前端使用的数据接口：
 
@@ -201,6 +200,24 @@ npm run build
 
 仓库已经包含 `dist/`，但只要前端源码有变化，就需要重新 build 后再部署。
 
+## 页面操作
+
+- 切换网络接口和时间范围无需整页刷新，浏览器前进、后退可恢复视图。
+- 点击刷新获取数据。“上次获取”表示浏览器成功获取数据的时间，并非 vnStat 的采集时间。同一视图刷新失败时会保留上次数据并提示。
+- 主题会保存在本地，URL 中显式指定的 `style` 参数优先。
+- 点击图例切换流入、流出的显示；明细支持排序和 CSV 导出，导出值统一使用原始 KB 数值。
+- vnStat 和回退数据均不可用时，接口返回 HTTP 503 和 JSON 错误；有效但没有记录的数据返回空状态。
+- 相对 `dataDir` 路径从项目根目录解析。旧记录会标注为“最近”，避免误显示为当前小时、当日或当月。
+
+验证命令：
+
+```bash
+npm test
+npm run build
+```
+
+测试需要 Node.js 和 PHP，构建包含 TypeScript 检查。本地预览可先构建前端，再在项目根目录运行 `php -S 127.0.0.1:8080 -t .`；真实流量需要已配置的 vnStat 程序或 dump 文件。
+
 ## 常见问题
 
 ### 打开就是 403 Forbidden
@@ -208,7 +225,7 @@ npm run build
 如果站点一打开就是 `403`，按这个顺序查：
 
 1. `root` 是否真的指向包含 `index.html` 的项目目录。
-2. `index` 是否写成了 `index index.html index.php;`，而不是只有 `index.php`。
+2. `index` 是否写成了 `index index.html;`，而不是只有 `index.php`。
 3. `location /` 是否包含 `try_files $uri $uri/ /index.html?$query_string;`。
 4. 项目目录和上级目录是否对 Nginx 用户可读、可遍历。
 5. `dist/manifest.json` 和 `dist/assets/` 是否已经构建出来。
@@ -223,7 +240,7 @@ php -l /var/www/vnstat/api/traffic.php
 sudo nginx -t
 ```
 
-如果 `/index.php` 能打开，但 `/` 返回 403，通常不是应用代码问题，而是 Nginx 的 `index` 或 `try_files` 配置问题。
+如果 `/index.html` 能打开，但 `/` 返回 403，请检查 Nginx 的 `index` 和 `try_files` 配置。
 
 ### 页面没有流量数据
 

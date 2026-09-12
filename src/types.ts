@@ -40,6 +40,22 @@ export interface Bootstrap {
     in: string;
     out: string;
     total: string;
+    dashboard: string;
+    dashboardDescription: string;
+    interfaces: string;
+    views: string;
+    refresh: string;
+    refreshing: string;
+    lastFetched: string;
+    requestTimeout: string;
+    retainedData: string;
+    sortBy: string;
+    newestFirst: string;
+    oldestFirst: string;
+    largestFirst: string;
+    exportCsv: string;
+    records: string;
+    chartHint: string;
   };
 }
 

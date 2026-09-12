@@ -1,51 +1,64 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import type { Bootstrap, SummaryCard } from "../../types";
 
-interface SummarySectionProps {
-  bootstrap: Bootstrap;
-  cards: SummaryCard[];
-}
-
 export function SummarySection({
   bootstrap,
   cards
-}: SummarySectionProps) {
-  if (cards.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-border p-6">
-        <h3 className="text-sm font-semibold">{bootstrap.labels.noTrafficDataTitle}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {bootstrap.labels.noTrafficDataMessage}
-        </p>
-      </div>
-    );
-  }
-
+}: {
+  bootstrap: Bootstrap;
+  cards: SummaryCard[];
+}) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <section
+      aria-label={bootstrap.labels.summaryTitle}
+      className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+    >
       {cards.map((card) => (
-        <div
+        <article
           key={card.id}
-          className="rounded-xl border border-border bg-card p-4 surface-shadow-sm"
+          className="min-w-0 rounded-xl border border-border bg-card p-4 surface-shadow-sm sm:p-5"
         >
           <p className="text-xs font-medium text-muted-foreground">
             {card.label}
           </p>
-          <p className="mt-2 text-xl font-semibold tabular-nums tracking-tight sm:text-2xl">
+          <p className="mt-3 break-words text-xl font-semibold tabular-nums tracking-tight sm:text-2xl xl:text-[1.7rem]">
             {card.formatted.total}
           </p>
-          <div className="mt-3 flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:gap-3">
+          <div
+            className="mb-3 mt-4 flex h-1 overflow-hidden rounded-full bg-[var(--surface-soft)]"
+            aria-hidden="true"
+          >
+            {card.total > 0 ? (
+              <>
+                <span
+                  className="bg-[var(--rx-bar)]"
+                  style={{ width: `${(card.rx / card.total) * 100}%` }}
+                />
+                <span
+                  className="bg-[var(--tx-bar)]"
+                  style={{ width: `${(card.tx / card.total) * 100}%` }}
+                />
+              </>
+            ) : null}
+          </div>
+          <div className="flex flex-col gap-1.5 text-xs">
             <span className="flex items-center gap-1 text-[var(--rx)]">
-              <ArrowDown className="h-3 w-3" />
-              <span className="font-medium tabular-nums">{card.formatted.rx}</span>
+              <ArrowDown aria-hidden="true" className="h-3 w-3 shrink-0" />
+              <span className="sr-only">{bootstrap.labels.in}: </span>
+              <span className="break-all font-medium tabular-nums">
+                {card.formatted.rx}
+              </span>
             </span>
             <span className="flex items-center gap-1 text-[var(--tx)]">
-              <ArrowUp className="h-3 w-3" />
-              <span className="font-medium tabular-nums">{card.formatted.tx}</span>
+              <ArrowUp aria-hidden="true" className="h-3 w-3 shrink-0" />
+              <span className="sr-only">{bootstrap.labels.out}: </span>
+              <span className="break-all font-medium tabular-nums">
+                {card.formatted.tx}
+              </span>
             </span>
           </div>
-        </div>
+        </article>
       ))}
-    </div>
+    </section>
   );
 }
